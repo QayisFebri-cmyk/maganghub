@@ -15,10 +15,17 @@ const USER_COLUMNS =
 /* Session lokal (dipakai oleh jalur login tabel `users`)              */
 /* ------------------------------------------------------------------ */
 
+/** Buang kolom password sebelum data disimpan di browser */
+function sanitize(profile: Profile): Profile {
+  const copy: Record<string, unknown> = { ...profile }
+  delete copy.password
+  return copy as unknown as Profile
+}
+
 function saveSession(profile: Profile) {
   if (typeof window === 'undefined') return
   try {
-    localStorage.setItem(SESSION_KEY, JSON.stringify(profile))
+    localStorage.setItem(SESSION_KEY, JSON.stringify(sanitize(profile)))
   } catch {
     /* ignore */
   }
@@ -28,7 +35,7 @@ function readSession(): Profile | null {
   if (typeof window === 'undefined') return null
   try {
     const raw = localStorage.getItem(SESSION_KEY)
-    return raw ? (JSON.parse(raw) as Profile) : null
+    return raw ? sanitize(JSON.parse(raw) as Profile) : null
   } catch {
     return null
   }
@@ -103,7 +110,7 @@ export async function signIn(
     .maybeSingle()
 
   if (!rowError && row) {
-    const profile = row as Profile
+    const profile = sanitize(row as Profile)
     saveSession(profile)
     return { data: profile, error: null }
   }
