@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import type { Profile } from './types'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
@@ -7,18 +8,11 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 const SESSION_KEY = 'maganghub_session'
 
-export type Profile = {
-  id: string
-  email: string
-  username?: string | null
-  nama?: string | null
-  role?: string | null
-  divisi_id?: number | null
-  pembimbing_id?: number | null
-}
+const USER_COLUMNS =
+  'id, email, username, nama, role, divisi_id, pembimbing_id, created_at'
 
 /* ------------------------------------------------------------------ */
-/* Session helpers (dipakai untuk mode login tabel `users`)            */
+/* Session lokal (dipakai oleh jalur login tabel `users`)              */
 /* ------------------------------------------------------------------ */
 
 function saveSession(profile: Profile) {
@@ -49,10 +43,14 @@ function clearSession() {
   }
 }
 
+export function updateSession(profile: Profile) {
+  saveSession(profile)
+}
+
 async function getProfileById(id: string): Promise<Profile | null> {
   const { data } = await supabase
     .from('users')
-    .select('*')
+    .select(USER_COLUMNS)
     .eq('id', id)
     .maybeSingle()
 
@@ -63,13 +61,20 @@ async function getProfileById(id: string): Promise<Profile | null> {
 /* Auth                                                               */
 /* ------------------------------------------------------------------ */
 
+export type SignInResult =
+  | { data: Profile; error: null }
+  | { data: null; error: string }
+
 /**
- * Login dengan 2 jalur:
- *  1. Supabase Auth (signInWithPassword) — jalur utama / production
- *  2. Tabel `users` (email + password) — fallback agar akun demo dari
- *     setup.sql langsung bisa dipakai tanpa setup tambahan.
+ * Login dengan dua jalur:
+ *  1. Supabase Auth (signInWithPassword) — jalur utama / produksi
+ *  2. Tabel `public.users` — fallback agar akun demo dari setup.sql
+ *     langsung bisa dipakai tanpa setup tambahan.
  */
-export async function signIn(email: string, password: string) {
+export async function signIn(
+  email: string,
+  password: string
+): Promise<SignInResult> {
   // 1) Supabase Auth
   const { data: authData, error: authError } =
     await supabase.auth.signInWithPassword({ email, password })
@@ -86,13 +91,13 @@ export async function signIn(email: string, password: string) {
       } as Profile)
 
     saveSession(profile)
-    return { data: profile, error: null as string | null }
+    return { data: profile, error: null }
   }
 
   // 2) Fallback: tabel users
   const { data: row, error: rowError } = await supabase
     .from('users')
-    .select('*')
+    .select(`${USER_COLUMNS}, password`)
     .eq('email', email)
     .eq('password', password)
     .maybeSingle()
@@ -100,13 +105,10 @@ export async function signIn(email: string, password: string) {
   if (!rowError && row) {
     const profile = row as Profile
     saveSession(profile)
-    return { data: profile, error: null as string | null }
+    return { data: profile, error: null }
   }
 
-  return {
-    data: null,
-    error: 'Email atau password salah',
-  }
+  return { data: null, error: 'Email atau password salah' }
 }
 
 export async function signUp(
@@ -135,25 +137,29 @@ export async function signUp(
     if (userError) return { data: null, error: userError.message }
   }
 
-  return { data: authData, error: null as string | null }
+  return { data: authData, error: null }
 }
 
 export async function getCurrentUser(): Promise<Profile | null> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
 
-  if (user) {
-    const profile = await getProfileById(user.id)
-    if (profile) return profile
+    if (user) {
+      const profile = await getProfileById(user.id)
+      if (profile) return profile
 
-    const meta = (user.user_metadata || {}) as Partial<Profile>
-    return {
-      id: user.id,
-      email: user.email || '',
-      nama: meta.nama ?? null,
-      role: meta.role ?? 'admin',
+      const meta = (user.user_metadata || {}) as Partial<Profile>
+      return {
+        id: user.id,
+        email: user.email || '',
+        nama: meta.nama ?? null,
+        role: meta.role ?? 'admin',
+      }
     }
+  } catch {
+    /* offline / belum dikonfigurasi */
   }
 
   return readSession()

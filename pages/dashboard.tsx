@@ -1,20 +1,26 @@
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
-import Head from 'next/head'
-import { getCurrentUser, signOut, supabase, type Profile } from '@/lib/supabase'
-import Sidebar from '@/components/Sidebar'
-import Navbar from '@/components/Navbar'
-import StatCard from '@/components/StatCard'
-import styles from '@/styles/dashboard.module.css'
+import { useCallback, useEffect, useState } from 'react'
+import Link from 'next/link'
+import AppShell from '@/components/layout/AppShell'
+import PageHeader from '@/components/ui/PageHeader'
+import StatCard from '@/components/ui/StatCard'
+import DataTable, { type Column } from '@/components/ui/DataTable'
+import Badge from '@/components/ui/Badge'
+import { useAuth } from '@/lib/auth-context'
+import { fetchDashboardStats, fetchWeeklyJurnal, jurnalApi } from '@/lib/api'
+import {
+  formatDate,
+  formatDateLong,
+  roleLabel,
+  statusLabel,
+  statusTone,
+  todayISO,
+} from '@/lib/format'
+import type { AktivitasRow } from '@/lib/types'
+import page from '@/styles/page.module.css'
+import ui from '@/styles/ui.module.css'
 
-type Stats = {
-  peserta: number
-  divisi: number
-  pembimbing: number
-  jurnalHariIni: number
-  menunggu: number
-  disetujui: number
-}
+type Stats = Awaited<ReturnType<typeof fetchDashboardStats>>
+type Day = { tanggal: string; label: string; total: number }
 
 const emptyStats: Stats = {
   peserta: 0,
@@ -25,216 +31,209 @@ const emptyStats: Stats = {
   disetujui: 0,
 }
 
-async function countRows(
-  table: string,
-  apply?: (q: any) => any
-): Promise<number> {
-  try {
-    let q = supabase.from(table).select('*', { count: 'exact', head: true })
-    if (apply) q = apply(q)
-    const { count, error } = await q
-    if (error) return 0
-    return count ?? 0
-  } catch {
-    return 0
-  }
-}
-
 export default function DashboardPage() {
-  const router = useRouter()
-  const [user, setUser] = useState<Profile | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { user } = useAuth()
   const [stats, setStats] = useState<Stats>(emptyStats)
-  const [activeTab, setActiveTab] = useState('dashboard')
+  const [week, setWeek] = useState<Day[]>([])
+  const [recent, setRecent] = useState<AktivitasRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  const load = useCallback(async () => {
+    if (!user) return
+    setLoading(true)
+    setError('')
+
+    try {
+      const [statsData, weekData, jurnalData] = await Promise.all([
+        fetchDashboardStats(user),
+        fetchWeeklyJurnal(user),
+        user.role === 'user'
+          ? jurnalApi.listByUser(user.id)
+          : jurnalApi.list(),
+      ])
+
+      setStats(statsData)
+      setWeek(weekData)
+      setRecent(jurnalData.slice(0, 5))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Gagal memuat data')
+    } finally {
+      setLoading(false)
+    }
+  }, [user])
 
   useEffect(() => {
-    let mounted = true
+    load()
+  }, [load])
 
-    const init = async () => {
-      const currentUser = await getCurrentUser()
-      if (!mounted) return
+  const maxDay = Math.max(1, ...week.map((day) => day.total))
 
-      if (!currentUser) {
-        router.replace('/login')
-        return
-      }
-
-      setUser(currentUser)
-      setLoading(false)
-
-      const today = new Date().toISOString().slice(0, 10)
-
-      const [peserta, divisi, pembimbing, jurnalHariIni, menunggu, disetujui] =
-        await Promise.all([
-          countRows('users', (q) => q.eq('role', 'user')),
-          countRows('divisi'),
-          countRows('pembimbing'),
-          countRows('aktivitas', (q) => q.eq('tanggal', today)),
-          countRows('aktivitas', (q) => q.eq('status', 'menunggu')),
-          countRows('aktivitas', (q) => q.eq('status', 'disetujui')),
-        ])
-
-      if (!mounted) return
-      setStats({
-        peserta,
-        divisi,
-        pembimbing,
-        jurnalHariIni,
-        menunggu,
-        disetujui,
-      })
-    }
-
-    init()
-
-    return () => {
-      mounted = false
-    }
-  }, [router])
-
-  const handleLogout = async () => {
-    await signOut()
-    router.replace('/login')
-  }
-
-  if (loading) {
-    return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.spinner}></div>
-        <p>Loading...</p>
-      </div>
-    )
-  }
-
-  const placeholder = (title: string, desc: string) => (
-    <div className={styles.pageSection}>
-      <h1>{title}</h1>
-      <p>{desc}</p>
-    </div>
-  )
+  const columns: Column<AktivitasRow>[] = [
+    {
+      key: 'tanggal',
+      header: 'Tanggal',
+      width: '110px',
+      render: (row) => <span className={ui.mono}>{formatDate(row.tanggal)}</span>,
+    },
+    {
+      key: 'peserta',
+      header: 'Peserta',
+      render: (row) => (
+        <span className={ui.tdStrong}>
+          {row.users?.nama || row.users?.email || '-'}
+        </span>
+      ),
+    },
+    {
+      key: 'judul',
+      header: 'Kegiatan',
+      render: (row) => row.judul || '-',
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      width: '120px',
+      render: (row) => (
+        <Badge tone={statusTone(row.status)}>{statusLabel(row.status)}</Badge>
+      ),
+    },
+  ]
 
   return (
-    <>
-      <Head>
-        <title>Dashboard - MagangHub</title>
-      </Head>
+    <AppShell title="Dashboard">
+      <div className={page.page}>
+        <PageHeader
+          title="Dashboard"
+          subtitle={`${formatDateLong(todayISO())} · Masuk sebagai ${roleLabel(
+            user?.role
+          )}`}
+          actions={
+            <Link href="/jurnal" className={`${ui.btn} ${ui.btnGhost}`}>
+              📝 Jurnal
+            </Link>
+          }
+        />
 
-      <div className={styles.appLayout}>
-        <Navbar user={user} onLogout={handleLogout} />
-        <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
+        {error ? (
+          <div className={`${ui.alert} ${ui.alertError}`}>
+            <span aria-hidden="true">⚠️</span>
+            <span>{error}</span>
+          </div>
+        ) : null}
 
-        <main className={styles.mainContent}>
-          <div className={styles.pageContent}>
-            {activeTab === 'dashboard' && (
-              <div className={styles.dashboardView}>
-                <div className={styles.pageHeader}>
-                  <div>
-                    <h1>Dashboard</h1>
-                    <p className={styles.subtitle}>
-                      Selamat datang di MagangHub
-                      {user?.nama ? `, ${user.nama}` : ''}
-                    </p>
-                  </div>
+        <div className={page.statsGrid}>
+          <StatCard
+            icon="👥"
+            label="Peserta Magang"
+            value={stats.peserta}
+            tone="blue"
+          />
+          <StatCard icon="🏢" label="Divisi" value={stats.divisi} tone="purple" />
+          <StatCard
+            icon="🧑‍🏫"
+            label="Pembimbing"
+            value={stats.pembimbing}
+            tone="green"
+          />
+          <StatCard
+            icon="📝"
+            label="Jurnal Hari Ini"
+            value={stats.jurnalHariIni}
+            tone="orange"
+          />
+          <StatCard
+            icon="⏳"
+            label="Menunggu Approval"
+            value={stats.menunggu}
+            tone="red"
+          />
+          <StatCard
+            icon="✅"
+            label="Disetujui"
+            value={stats.disetujui}
+            tone="green"
+          />
+        </div>
+
+        <div className={page.grid2}>
+          <section className={ui.card}>
+            <div className={ui.cardHead}>
+              <h2 className={ui.cardTitle}>Jurnal 7 Hari Terakhir</h2>
+              <span className={ui.hint}>Total: {week.reduce((a, b) => a + b.total, 0)}</span>
+            </div>
+            <div className={ui.cardBody}>
+              <div className={page.chart}>
+                {week.map((day) => {
+                  const height =
+                    day.total === 0 ? 4 : Math.round((day.total / maxDay) * 100)
+                  return (
+                    <div key={day.tanggal} className={page.barCol}>
+                      <span className={page.barValue}>{day.total}</span>
+                      <div className={page.barTrack}>
+                        <div
+                          className={`${page.barFill} ${
+                            day.total === 0 ? page.barFillEmpty : ''
+                          }`}
+                          style={{ height: `${height}%` }}
+                        />
+                      </div>
+                      <span className={page.barLabel}>{day.label}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </section>
+
+          <section className={ui.card}>
+            <div className={ui.cardHead}>
+              <h2 className={ui.cardTitle}>Ringkasan Akun</h2>
+            </div>
+            <div className={ui.cardBody}>
+              <div className={page.metaList}>
+                <div className={page.metaRow}>
+                  <span className={page.metaKey}>Nama</span>
+                  <span className={page.metaVal}>
+                    {user?.nama || 'Belum diisi'}
+                  </span>
                 </div>
-
-                <div className={styles.statsGrid}>
-                  <StatCard
-                    icon="👥"
-                    title="Peserta Magang"
-                    value={stats.peserta}
-                    color="blue"
-                  />
-                  <StatCard
-                    icon="🏢"
-                    title="Divisi"
-                    value={stats.divisi}
-                    color="purple"
-                  />
-                  <StatCard
-                    icon="👨‍🏫"
-                    title="Pembimbing"
-                    value={stats.pembimbing}
-                    color="green"
-                  />
-                  <StatCard
-                    icon="📝"
-                    title="Jurnal Hari Ini"
-                    value={stats.jurnalHariIni}
-                    color="orange"
-                  />
-                  <StatCard
-                    icon="⏳"
-                    title="Menunggu Approval"
-                    value={stats.menunggu}
-                    color="red"
-                  />
-                  <StatCard
-                    icon="✅"
-                    title="Disetujui"
-                    value={stats.disetujui}
-                    color="success"
-                  />
+                <div className={page.metaRow}>
+                  <span className={page.metaKey}>Email</span>
+                  <span className={page.metaVal}>{user?.email}</span>
                 </div>
-
-                <div className={styles.cardsContainer}>
-                  <div className={styles.card}>
-                    <h3>📊 Status Koneksi</h3>
-                    <p>
-                      Terhubung ke Supabase. Angka di atas diambil langsung dari
-                      database.
-                    </p>
-                    <p className={styles.meta}>Login sebagai: {user?.email}</p>
-                  </div>
-
-                  <div className={styles.card}>
-                    <h3>🚀 Langkah Berikutnya</h3>
-                    <p>
-                      Tambahkan data divisi, pembimbing, dan peserta magang lewat
-                      tabel Supabase, lalu angka statistik akan terisi otomatis.
-                    </p>
-                  </div>
+                <div className={page.metaRow}>
+                  <span className={page.metaKey}>Peran</span>
+                  <span className={page.metaVal}>{roleLabel(user?.role)}</span>
+                </div>
+                <div className={page.metaRow}>
+                  <span className={page.metaKey}>Tanggal</span>
+                  <span className={page.metaVal}>{formatDate(todayISO())}</span>
                 </div>
               </div>
-            )}
+            </div>
+          </section>
+        </div>
 
-            {activeTab === 'peserta' &&
-              placeholder(
-                'Data Peserta Magang',
-                'Modul ini belum dibuat. Sementara kelola data lewat tabel `users` di Supabase.'
-              )}
-
-            {activeTab === 'divisi' &&
-              placeholder(
-                'Data Divisi',
-                'Modul ini belum dibuat. Sementara kelola data lewat tabel `divisi` di Supabase.'
-              )}
-
-            {activeTab === 'pembimbing' &&
-              placeholder(
-                'Data Pembimbing',
-                'Modul ini belum dibuat. Sementara kelola data lewat tabel `pembimbing` di Supabase.'
-              )}
-
-            {activeTab === 'jurnal' &&
-              placeholder(
-                'Jurnal Harian',
-                'Modul ini belum dibuat. Data jurnal tersimpan di tabel `aktivitas`.'
-              )}
-
-            {activeTab === 'absensi' &&
-              placeholder(
-                'Absensi',
-                'Modul ini belum dibuat. Data absensi tersimpan di tabel `absensi`.'
-              )}
-
-            {activeTab === 'laporan' &&
-              placeholder(
-                'Laporan',
-                'Modul ini belum dibuat. Laporan akan dibuat dari data jurnal dan absensi.'
-              )}
+        <section>
+          <div className={ui.cardHead} style={{ padding: '0 0 12px', border: 0 }}>
+            <h2 className={ui.cardTitle}>Jurnal Terbaru</h2>
+            <Link href="/jurnal" className={ui.hint}>
+              Lihat semua →
+            </Link>
           </div>
-        </main>
+          <DataTable
+            columns={columns}
+            rows={recent}
+            rowKey={(row) => row.id}
+            loading={loading}
+            emptyIcon="📝"
+            emptyTitle="Belum ada jurnal"
+            emptyDescription="Jurnal yang dibuat akan tampil di sini."
+            skeletonRows={3}
+          />
+        </section>
       </div>
-    </>
+    </AppShell>
   )
 }
