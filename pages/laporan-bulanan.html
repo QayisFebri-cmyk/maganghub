@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laporan Bulanan - MagangHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <nav class="navbar-custom">
+    <div class="navbar-left">
+      <button class="nav-toggle" id="toggleSidebar" aria-label="Toggle sidebar"><i class="fas fa-bars"></i></button>
+      <div class="navbar-brand"><i class="fas fa-briefcase"></i><span>MagangHub</span></div>
+      <h3 style="color:#fff;font-size:0.95rem;font-weight:500;opacity:0.85">Laporan Bulanan</h3>
+    </div>
+    <div class="navbar-right">
+      <button class="nav-btn" id="darkModeToggle" aria-label="Toggle dark mode"><i class="fas fa-moon"></i></button>
+      <div class="header-user">
+        <div class="avatar" id="userAvatar">U</div>
+        <div class="user-info"><div class="name" id="userName">User</div><div class="role" id="userRole">-</div></div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand"><i class="fas fa-briefcase"></i><h2>MagangHub</h2></div>
+      <nav class="sidebar-menu" id="sidebarMenu"></nav>
+    </aside>
+
+    <main class="main-content">
+      <div class="page-content">
+        <div class="page-header">
+          <div><h1>Laporan Bulanan</h1><p class="subtitle">Upload dan kelola laporan bulanan magang</p></div>
+        </div>
+
+        <div class="card" id="uploadCard">
+          <h3 style="margin-bottom:16px"><i class="fas fa-file-upload"></i> Upload Laporan</h3>
+          <form id="formUpload">
+            <div class="row row-2">
+              <div class="form-group">
+                <label>Bulan</label>
+                <select id="lBulan">
+                  <option value="01">Januari</option><option value="02">Februari</option><option value="03">Maret</option>
+                  <option value="04">April</option><option value="05">Mei</option><option value="06">Juni</option>
+                  <option value="07">Juli</option><option value="08">Agustus</option><option value="09">September</option>
+                  <option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Tahun</label>
+                <select id="lTahun"><option value="2025">2025</option><option value="2026" selected>2026</option></select>
+              </div>
+            </div>
+            <div class="form-group"><label>Judul / Keterangan</label><input type="text" id="lJudul" placeholder="cth: Laporan Aktivitas Bulan Januari"></div>
+            <div class="form-group">
+              <label>File Laporan</label>
+              <input type="file" id="lFile" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp" required>
+              <small class="text-muted" style="display:block;margin-top:4px">Format: PDF, Word, Excel, gambar &mdash; maks 1MB</small>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center"><i class="fas fa-upload"></i> Upload</button>
+          </form>
+        </div>
+
+        <div class="tabel-card">
+          <h3><i class="fas fa-folder-open"></i> Daftar Laporan</h3>
+          <div class="table-wrapper">
+            <table>
+              <thead><tr><th>Bulan</th><th id="colNama">Nama</th><th>Judul</th><th>File</th><th>Diunggah</th><th>Aksi</th></tr></thead>
+              <tbody id="laporanBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script src="../data/dummy-data.js"></script>
+  <script src="../js/storage.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+    DB.init();
+    const session = Auth.requireAuth();
+    if (session.role === 'pembimbing') window.location.href = '../dashboard/pembimbing.html';
+    const currentUser = Auth.getCurrentUser();
+    const isAdmin = session.role === 'admin';
+
+    function showToast(msg, type) {
+      const c = document.getElementById('toast-container');
+      const t = document.createElement('div');
+      t.className = 'toast toast-' + type;
+      t.innerHTML = '<i class="fas ' + (type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle') + '"></i> ' + msg;
+      c.appendChild(t);
+      setTimeout(() => { t.classList.add('toast-remove'); setTimeout(() => t.remove(), 300); }, 3000);
+    }
+
+    function buildSidebar() {
+      const menu = document.getElementById('sidebarMenu');
+      if (isAdmin) {
+        menu.innerHTML = `
+          <div class="sidebar-label">Menu Utama</div>
+          <a href="../dashboard/admin.html" class="sidebar-item"><i class="fas fa-th-large"></i> <span>Dashboard</span></a>
+          <a href="../dashboard/admin.html?page=magang" class="sidebar-item"><i class="fas fa-users"></i> <span>Peserta Magang</span></a>
+          <a href="../dashboard/admin.html?page=divisi" class="sidebar-item"><i class="fas fa-building"></i> <span>Divisi</span></a>
+          <a href="../dashboard/admin.html?page=pembimbing" class="sidebar-item"><i class="fas fa-chalkboard-teacher"></i> <span>Pembimbing</span></a>
+          <a href="absensi.html" class="sidebar-item"><i class="fas fa-calendar-check"></i> <span>Absensi</span></a>
+          <a href="aktivitas.html" class="sidebar-item"><i class="fas fa-tasks"></i> <span>Jurnal Harian</span></a>
+          <a href="laporan-bulanan.html" class="sidebar-item active"><i class="fas fa-file-upload"></i> <span>Laporan Bulanan</span></a>
+          <a href="laporan.html" class="sidebar-item"><i class="fas fa-file-alt"></i> <span>Laporan</span></a>
+          <div class="sidebar-label">Lainnya</div>
+          <a href="profil.html" class="sidebar-item"><i class="fas fa-user-cog"></i> <span>Pengaturan</span></a>
+          <a href="#" class="sidebar-item logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>`;
+      } else {
+        menu.innerHTML = `
+          <div class="sidebar-label">Menu</div>
+          <a href="../dashboard/user.html" class="sidebar-item"><i class="fas fa-th-large"></i> <span>Dashboard</span></a>
+          <a href="absensi.html" class="sidebar-item"><i class="fas fa-calendar-check"></i> <span>Absensi</span></a>
+          <a href="aktivitas.html" class="sidebar-item"><i class="fas fa-tasks"></i> <span>Jurnal Harian</span></a>
+          <a href="laporan-bulanan.html" class="sidebar-item active"><i class="fas fa-file-upload"></i> <span>Laporan Bulanan</span></a>
+          <a href="profil.html" class="sidebar-item"><i class="fas fa-user"></i> <span>Profil</span></a>
+          <div class="sidebar-label">Lainnya</div>
+          <a href="#" class="sidebar-item logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>`;
+      }
+      document.getElementById('logoutBtn')?.addEventListener('click', (e) => { e.preventDefault(); showToast('Logout berhasil','info'); setTimeout(() => Auth.logout(), 1000); });
+    }
+
+    document.getElementById('toggleSidebar').addEventListener('click', () => {
+      const sb = document.getElementById('sidebar');
+      const mc = document.querySelector('.main-content');
+      const overlay = document.getElementById('sidebarOverlay');
+      if (window.innerWidth > 991.98) {
+        sb.classList.toggle('active');
+        sb.classList.toggle('expanded');
+        mc.classList.toggle('shifted');
+      } else {
+        sb.classList.toggle('active');
+        overlay.classList.toggle('active');
+      }
+    });
+    document.getElementById('sidebarOverlay').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.remove('active');
+      document.getElementById('sidebarOverlay').classList.remove('active');
+    });
+
+    (function initSidebarHover() {
+      const sb = document.getElementById('sidebar');
+      const mc = document.querySelector('.main-content');
+      let sbTimer;
+      sb.addEventListener('mouseenter', () => {
+        clearTimeout(sbTimer);
+        if (window.innerWidth > 991.98) {
+          sb.classList.add('expanded');
+          mc.classList.add('shifted');
+        }
+      });
+      sb.addEventListener('mouseleave', () => {
+        if (window.innerWidth > 991.98 && !sb.classList.contains('active')) {
+          sbTimer = setTimeout(() => {
+            sb.classList.remove('expanded');
+            mc.classList.remove('shifted');
+          }, 300);
+        }
+      });
+    })();
+
+    document.getElementById('darkModeToggle').addEventListener('click', () => {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      if (isDark) { document.documentElement.removeAttribute('data-theme'); localStorage.setItem('theme','light'); }
+      else { document.documentElement.setAttribute('data-theme','dark'); localStorage.setItem('theme','dark'); }
+    });
+    if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme','dark');
+
+    if (currentUser) {
+      document.getElementById('userName').textContent = currentUser.nama;
+      document.getElementById('userAvatar').textContent = currentUser.nama.charAt(0);
+      document.getElementById('userRole').textContent = isAdmin ? 'Administrator' : 'Peserta Magang';
+    }
+
+    const NAMA_BULAN = { '01':'Januari','02':'Februari','03':'Maret','04':'April','05':'Mei','06':'Juni','07':'Juli','08':'Agustus','09':'September','10':'Oktober','11':'November','12':'Desember' };
+
+    document.getElementById('colNama').style.display = isAdmin ? '' : 'none';
+
+    function renderLaporan() {
+      let list = DB.get('laporan');
+      if (!isAdmin) list = list.filter(l => l.userId === currentUser.id);
+      list = list.sort((a,b) => b.createdAt.localeCompare(a.createdAt));
+      const tbody = document.getElementById('laporanBody');
+      if (!list.length) { tbody.innerHTML = '<tr><td colspan="' + (isAdmin ? 6 : 5) + '" class="text-center text-muted">Belum ada laporan</td></tr>'; return; }
+      tbody.innerHTML = list.map(l => {
+        const canDelete = isAdmin || l.userId === currentUser.id;
+        return `<tr>
+          <td>${NAMA_BULAN[l.bulan] || l.bulan} ${l.tahun}</td>
+          <td>${isAdmin ? DB.getNamaUser(l.userId) : ''}</td>
+          <td>${l.judul || '-'}</td>
+          <td>${l.fileName}</td>
+          <td>${new Date(l.createdAt).toLocaleDateString('id-ID')}</td>
+          <td>
+            <div class="table-actions">
+              <a class="btn btn-sm btn-outline" href="${l.fileData}" download="${l.fileName}"><i class="fas fa-download"></i></a>
+              ${canDelete ? '<button class="btn btn-sm btn-danger" onclick="hapusLaporan('+l.id+')"><i class="fas fa-trash"></i></button>' : ''}
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    document.getElementById('formUpload').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const fileInput = document.getElementById('lFile');
+      const file = fileInput.files[0];
+      if (!file) { showToast('Pilih file terlebih dahulu', 'warning'); return; }
+      if (file.size > 1024 * 1024) { showToast('Ukuran file maksimal 1MB', 'warning'); return; }
+      const bulan = document.getElementById('lBulan').value;
+      const tahun = document.getElementById('lTahun').value;
+      const judul = document.getElementById('lJudul').value.trim();
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        DB.add('laporan', {
+          userId: currentUser.id,
+          bulan,
+          tahun,
+          judul,
+          fileName: file.name,
+          fileType: file.type,
+          fileData: ev.target.result,
+          createdAt: new Date().toISOString()
+        });
+        showToast('Laporan berhasil diunggah', 'success');
+        renderLaporan();
+        e.target.reset();
+      };
+      reader.onerror = function() { showToast('Gagal membaca file', 'error'); };
+      reader.readAsDataURL(file);
+    });
+
+    function hapusLaporan(id) {
+      const l = DB.getById('laporan', id);
+      if (!l) return;
+      if (!isAdmin && l.userId !== currentUser.id) { showToast('Anda tidak berhak menghapus laporan ini', 'error'); return; }
+      if (confirm('Hapus laporan ini?')) {
+        DB.delete('laporan', id);
+        renderLaporan();
+        showToast('Laporan berhasil dihapus', 'success');
+      }
+    }
+
+    buildSidebar();
+    renderLaporan();
+  </script>
+</body>
+</html>

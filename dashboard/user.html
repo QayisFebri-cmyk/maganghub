@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard User - MagangHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- ===== NAVBAR ===== -->
+  <nav class="navbar-custom">
+    <div class="navbar-left">
+      <button class="nav-toggle" id="toggleSidebar" aria-label="Toggle sidebar">
+        <i class="fas fa-bars"></i>
+      </button>
+      <div class="navbar-brand">
+        <i class="fas fa-briefcase"></i>
+        <span>MagangHub</span>
+      </div>
+    </div>
+    <div class="navbar-right">
+      <button class="nav-btn" id="darkModeToggle" aria-label="Toggle dark mode">
+        <i class="fas fa-moon"></i>
+      </button>
+      <button class="nav-btn" aria-label="Notifications">
+        <i class="fas fa-bell"></i>
+        <span class="badge-dot"></span>
+      </button>
+      <div class="header-user">
+        <div class="avatar" id="userAvatar">U</div>
+        <div class="user-info">
+          <div class="name" id="userName">User</div>
+          <div class="role">Peserta Magang</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ===== APP LAYOUT ===== -->
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <i class="fas fa-briefcase"></i>
+        <h2>MagangHub</h2>
+      </div>
+      <nav class="sidebar-menu">
+        <div class="sidebar-label">Menu</div>
+        <a href="user.html" class="sidebar-item active"><i class="fas fa-th-large"></i> <span>Dashboard</span></a>
+        <a href="../pages/absensi.html" class="sidebar-item"><i class="fas fa-calendar-check"></i> <span>Absensi</span></a>
+        <a href="../pages/aktivitas.html" class="sidebar-item"><i class="fas fa-tasks"></i> <span>Jurnal Harian</span></a>
+        <a href="../pages/laporan-bulanan.html" class="sidebar-item"><i class="fas fa-file-upload"></i> <span>Laporan Bulanan</span></a>
+        <a href="../pages/profil.html" class="sidebar-item"><i class="fas fa-user"></i> <span>Profil</span></a>
+
+        <div class="sidebar-divider"></div>
+
+        <div class="sidebar-label">Lainnya</div>
+        <a href="#" class="sidebar-item logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>
+      </nav>
+    </aside>
+
+    <main class="main-content" id="mainContent">
+      <div class="page-content user-dashboard">
+        <div class="welcome" id="welcomeCard">
+          <h1 id="welcomeText">Selamat Datang, User!</h1>
+          <p id="welcomeSubtext">Semangat magang hari ini!</p>
+        </div>
+
+        <div class="stats-grid col-4" id="userStats">
+          <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-tasks"></i></div><div class="stat-info"><span class="number" id="uTotalAktivitas">0</span><span class="label">Total Jurnal</span></div></div>
+          <div class="stat-card"><div class="stat-icon green"><i class="fas fa-calendar-week"></i></div><div class="stat-info"><span class="number" id="uAktivitasBulan">0</span><span class="label">Bulan Ini</span></div></div>
+          <div class="stat-card"><div class="stat-icon orange"><i class="fas fa-clock"></i></div><div class="stat-info"><span class="number" id="uPersenHadir">0%</span><span class="label">Kehadiran</span></div></div>
+          <div class="stat-card"><div class="stat-icon purple"><i class="fas fa-user-graduate"></i></div><div class="stat-info"><span class="number" id="uDivisi">-</span><span class="label">Divisi</span></div></div>
+        </div>
+
+        <div class="chart-grid col-2">
+          <div class="chart-card"><h3><i class="fas fa-chart-bar"></i> Jurnal Per Bulan</h3><canvas id="chartUserAktivitas"></canvas></div>
+          <div class="chart-card"><h3><i class="fas fa-chart-line"></i> Kehadiran Bulanan</h3><canvas id="chartUserKehadiran"></canvas></div>
+        </div>
+
+        <div class="tabel-card">
+          <h3><i class="fas fa-history"></i> Jurnal Terbaru</h3>
+          <div class="table-wrapper"><table><thead><tr><th>Tanggal</th><th>Jurnal</th><th>Progress</th><th>Status</th></tr></thead><tbody id="userAktivitasBody"></tbody></table></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="../data/dummy-data.js"></script>
+  <script src="../js/storage.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/chart.js"></script>
+  <script src="../js/dashboard.js"></script>
+  <script src="../js/absensi.js"></script>
+  <script src="../js/aktivitas.js"></script>
+  <script src="../js/user.js"></script>
+  <script src="../js/animations.js"></script>
+  <script>
+    DB.init();
+    Auth.requireRole('user');
+    const user = Auth.getCurrentUser();
+
+    function showToast(msg, type = 'success') {
+      const c = document.getElementById('toast-container');
+      const t = document.createElement('div');
+      t.className = 'toast toast-' + type;
+      t.innerHTML = '<i class="fas ' + (type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle') + '"></i> ' + msg;
+      c.appendChild(t);
+      setTimeout(() => { t.classList.add('toast-remove'); setTimeout(() => t.remove(), 300); }, 3000);
+    }
+
+    document.getElementById('toggleSidebar').addEventListener('click', () => {
+      const sb = document.getElementById('sidebar');
+      const mc = document.getElementById('mainContent');
+      if (window.innerWidth > 991.98) {
+        sb.classList.toggle('active');
+        sb.classList.toggle('expanded');
+        mc.classList.toggle('shifted');
+      } else {
+        sb.classList.toggle('active');
+        document.getElementById('sidebarOverlay').classList.toggle('active');
+      }
+    });
+    document.getElementById('sidebarOverlay').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.remove('active');
+      document.getElementById('sidebarOverlay').classList.remove('active');
+    });
+
+    (function initSidebarHover() {
+      const sb = document.getElementById('sidebar');
+      const mc = document.getElementById('mainContent');
+      let sbTimer;
+      sb.addEventListener('mouseenter', () => {
+        clearTimeout(sbTimer);
+        if (window.innerWidth > 991.98) {
+          sb.classList.add('expanded');
+          mc.classList.add('shifted');
+        }
+      });
+      sb.addEventListener('mouseleave', () => {
+        if (window.innerWidth > 991.98 && !sb.classList.contains('active')) {
+          sbTimer = setTimeout(() => {
+            sb.classList.remove('expanded');
+            mc.classList.remove('shifted');
+          }, 300);
+        }
+      });
+    })();
+
+    document.getElementById('darkModeToggle').addEventListener('click', () => {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      if (isDark) { document.documentElement.removeAttribute('data-theme'); localStorage.setItem('theme', 'light'); }
+      else { document.documentElement.setAttribute('data-theme', 'dark'); localStorage.setItem('theme', 'dark'); }
+      updateCharts();
+    });
+    if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+
+    document.getElementById('logoutBtn').addEventListener('click', (e) => {
+      e.preventDefault();
+      showToast('Logout berhasil', 'info');
+      setTimeout(() => Auth.logout(), 1000);
+    });
+
+    document.querySelector('.nav-btn[aria-label="Notifications"]')?.addEventListener('click', () => {
+      showToast('Tidak ada notifikasi baru', 'info');
+    });
+
+    function initUserDashboard() {
+      if (!user) return;
+      document.getElementById('userName').textContent = user.nama;
+      document.getElementById('userAvatar').textContent = user.nama.charAt(0);
+      document.getElementById('welcomeText').textContent = 'Selamat Datang, ' + user.nama + '!';
+      document.getElementById('welcomeSubtext').textContent = 'Divisi ' + DB.getNamaDivisi(user.divisiId) + ' | Semangat magang hari ini!';
+
+      const stats = Dashboard.getStatsUser(user.id);
+      document.getElementById('uTotalAktivitas').textContent = stats.totalAktivitas;
+      document.getElementById('uAktivitasBulan').textContent = stats.aktivitasBulanIni;
+      document.getElementById('uPersenHadir').textContent = stats.persentaseKehadiran + '%';
+      document.getElementById('uDivisi').textContent = stats.divisi;
+
+      const aktivitas = AktivitasManager.getByUser(user.id);
+      const tbody = document.getElementById('userAktivitasBody');
+      if (!aktivitas.length) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Belum ada jurnal</td></tr>';
+      } else {
+        tbody.innerHTML = aktivitas.slice(0, 10).map(a => {
+          const sc = a.status === 'disetujui' ? 'badge-success' : a.status === 'ditolak' ? 'badge-danger' : 'badge-warning';
+          return `<tr><td>${a.tanggal}</td><td>${a.judul}</td><td>${a.progress}%</td><td><span class="badge ${sc}">${a.status}</span></td></tr>`;
+        }).join('');
+      }
+    }
+
+    function updateCharts() {
+      if (!user) return;
+      const uap = Dashboard.getUserAktivitasPerMonth(user.id);
+      ChartManager.bar('chartUserAktivitas', uap.labels, uap.data, 'Jurnal', '#5B3DF5');
+      const ukh = Dashboard.getUserKehadiranBulanan(user.id);
+      ChartManager.line('chartUserKehadiran', ukh.labels, [{ label: 'Hadir', data: ukh.data, borderColor: '#28A745', backgroundColor: 'rgba(40,167,69,0.1)', fill: true }]);
+    }
+
+    initUserDashboard();
+    updateCharts();
+  </script>
+</body>
+</html>

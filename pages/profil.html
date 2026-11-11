@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profil - MagangHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <nav class="navbar-custom">
+    <div class="navbar-left">
+      <button class="nav-toggle" id="toggleSidebar" aria-label="Toggle sidebar"><i class="fas fa-bars"></i></button>
+      <div class="navbar-brand"><i class="fas fa-briefcase"></i><span>MagangHub</span></div>
+      <h3 style="color:#fff;font-size:0.95rem;font-weight:500;opacity:0.85">Profil</h3>
+    </div>
+    <div class="navbar-right">
+      <button class="nav-btn" id="darkModeToggle" aria-label="Toggle dark mode"><i class="fas fa-moon"></i></button>
+      <div class="header-user">
+        <div class="avatar" id="userAvatar">U</div>
+        <div class="user-info"><div class="name" id="userName">User</div><div class="role" id="userRole">-</div></div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand"><i class="fas fa-briefcase"></i><h2>MagangHub</h2></div>
+      <nav class="sidebar-menu" id="sidebarMenu"></nav>
+    </aside>
+
+    <main class="main-content">
+      <div class="page-content">
+        <div class="page-header">
+          <div><h1>Pengaturan Akun</h1><p class="subtitle">Kelola profil dan pengaturan akun Anda</p></div>
+        </div>
+
+        <div class="row row-2">
+          <div class="card">
+            <h3 style="margin-bottom:16px"><i class="fas fa-user"></i> Profil Saya</h3>
+            <div id="profileDisplay">
+              <div style="text-align:center;margin-bottom:20px">
+                <div style="width:80px;height:80px;border-radius:50%;background:var(--primary-bg);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:600;margin:0 auto 12px" id="profileAvatar">U</div>
+                <h2 style="font-size:1.2rem;color:var(--dark)" id="profileName">-</h2>
+                <p class="text-muted" id="profileRole">-</p>
+              </div>
+              <div class="row row-2" id="profileFields"></div>
+              <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:16px" onclick="showEditProfile()"><i class="fas fa-edit"></i> Edit Profil</button>
+            </div>
+
+            <form id="formEditProfile" class="d-none">
+              <div class="form-group"><label>Nama Lengkap</label><input type="text" id="epNama" required><small class="error-msg"></small></div>
+              <div class="row row-2">
+                <div class="form-group"><label>NIM/NIS</label><input type="text" id="epNim"></div>
+                <div class="form-group"><label>Universitas</label><input type="text" id="epUniv"></div>
+              </div>
+              <div class="row row-2">
+                <div class="form-group"><label>Jurusan</label><input type="text" id="epJurusan"></div>
+                <div class="form-group"><label>No. HP</label><input type="text" id="epHp"></div>
+              </div>
+              <div class="form-group"><label>Email</label><input type="email" id="epEmail"></div>
+              <div class="form-group"><label>Alamat</label><input type="text" id="epAlamat"></div>
+              <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center"><i class="fas fa-save"></i> Simpan</button>
+                <button type="button" class="btn btn-outline" onclick="cancelEditProfile()"><i class="fas fa-times"></i> Batal</button>
+              </div>
+            </form>
+          </div>
+
+          <div>
+            <div class="card" style="margin-bottom:20px">
+              <h3 style="margin-bottom:16px"><i class="fas fa-lock"></i> Ubah Password</h3>
+              <form id="formChangePassword">
+                <div class="form-group"><label>Password Lama</label><input type="password" id="cpOld" required><small class="error-msg"></small></div>
+                <div class="form-group"><label>Password Baru</label><input type="password" id="cpNew" required><small class="error-msg"></small></div>
+                <div class="form-group"><label>Konfirmasi Password Baru</label><input type="password" id="cpConfirm" required><small class="error-msg"></small></div>
+                <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center"><i class="fas fa-key"></i> Ganti Password</button>
+              </form>
+            </div>
+
+            <div class="card">
+              <h3 style="margin-bottom:16px"><i class="fas fa-info-circle"></i> Info Akun</h3>
+              <div id="accountInfo"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script src="../data/dummy-data.js"></script>
+  <script src="../js/storage.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/user.js"></script>
+  <script>
+    DB.init();
+    const session = Auth.requireAuth();
+    if (session.role === 'pembimbing') window.location.href = '../dashboard/pembimbing.html';
+    const user = Auth.getCurrentUser();
+    const isAdmin = session.role === 'admin';
+
+    function showToast(msg, type) {
+      const c = document.getElementById('toast-container');
+      const t = document.createElement('div');
+      t.className = 'toast toast-' + type;
+      t.innerHTML = '<i class="fas ' + (type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle') + '"></i> ' + msg;
+      c.appendChild(t);
+      setTimeout(() => { t.classList.add('toast-remove'); setTimeout(() => t.remove(), 300); }, 3000);
+    }
+
+    function buildSidebar() {
+      const menu = document.getElementById('sidebarMenu');
+      if (isAdmin) {
+        menu.innerHTML = `
+          <div class="sidebar-label">Menu Utama</div>
+          <a href="../dashboard/admin.html" class="sidebar-item"><i class="fas fa-th-large"></i> <span>Dashboard</span></a>
+          <a href="../dashboard/admin.html?page=magang" class="sidebar-item"><i class="fas fa-users"></i> <span>Peserta Magang</span></a>
+          <a href="../dashboard/admin.html?page=divisi" class="sidebar-item"><i class="fas fa-building"></i> <span>Divisi</span></a>
+          <a href="../dashboard/admin.html?page=pembimbing" class="sidebar-item"><i class="fas fa-chalkboard-teacher"></i> <span>Pembimbing</span></a>
+          <a href="absensi.html" class="sidebar-item"><i class="fas fa-calendar-check"></i> <span>Absensi</span></a>
+          <a href="aktivitas.html" class="sidebar-item"><i class="fas fa-tasks"></i> <span>Jurnal Harian</span></a>
+          <a href="laporan-bulanan.html" class="sidebar-item"><i class="fas fa-file-upload"></i> <span>Laporan Bulanan</span></a>
+          <a href="laporan.html" class="sidebar-item"><i class="fas fa-file-alt"></i> <span>Laporan</span></a>
+          <div class="sidebar-label">Lainnya</div>
+          <a href="profil.html" class="sidebar-item active"><i class="fas fa-user-cog"></i> <span>Pengaturan</span></a>
+          <a href="#" class="sidebar-item logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>`;
+      } else {
+        menu.innerHTML = `
+          <div class="sidebar-label">Menu</div>
+          <a href="../dashboard/user.html" class="sidebar-item"><i class="fas fa-th-large"></i> <span>Dashboard</span></a>
+          <a href="absensi.html" class="sidebar-item"><i class="fas fa-calendar-check"></i> <span>Absensi</span></a>
+          <a href="aktivitas.html" class="sidebar-item"><i class="fas fa-tasks"></i> <span>Jurnal Harian</span></a>
+          <a href="laporan-bulanan.html" class="sidebar-item"><i class="fas fa-file-upload"></i> <span>Laporan Bulanan</span></a>
+          <a href="profil.html" class="sidebar-item active"><i class="fas fa-user"></i> <span>Profil</span></a>
+          <div class="sidebar-label">Lainnya</div>
+          <a href="#" class="sidebar-item logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>`;
+      }
+      document.getElementById('logoutBtn')?.addEventListener('click', (e) => { e.preventDefault(); showToast('Logout berhasil','info'); setTimeout(() => Auth.logout(), 1000); });
+    }
+
+    document.getElementById('toggleSidebar').addEventListener('click', () => {
+      const sb = document.getElementById('sidebar');
+      const mc = document.querySelector('.main-content');
+      const overlay = document.getElementById('sidebarOverlay');
+      if (window.innerWidth > 991.98) {
+        sb.classList.toggle('active');
+        sb.classList.toggle('expanded');
+        mc.classList.toggle('shifted');
+      } else {
+        sb.classList.toggle('active');
+        overlay.classList.toggle('active');
+      }
+    });
+    document.getElementById('sidebarOverlay').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.remove('active');
+      document.getElementById('sidebarOverlay').classList.remove('active');
+    });
+
+    (function initSidebarHover() {
+      const sb = document.getElementById('sidebar');
+      const mc = document.querySelector('.main-content');
+      let sbTimer;
+      sb.addEventListener('mouseenter', () => {
+        clearTimeout(sbTimer);
+        if (window.innerWidth > 991.98) {
+          sb.classList.add('expanded');
+          mc.classList.add('shifted');
+        }
+      });
+      sb.addEventListener('mouseleave', () => {
+        if (window.innerWidth > 991.98 && !sb.classList.contains('active')) {
+          sbTimer = setTimeout(() => {
+            sb.classList.remove('expanded');
+            mc.classList.remove('shifted');
+          }, 300);
+        }
+      });
+    })();
+
+    document.getElementById('darkModeToggle').addEventListener('click', () => {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      if (isDark) { document.documentElement.removeAttribute('data-theme'); localStorage.setItem('theme','light'); }
+      else { document.documentElement.setAttribute('data-theme','dark'); localStorage.setItem('theme','dark'); }
+    });
+    if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme','dark');
+
+    if (user) {
+      document.getElementById('userName').textContent = user.nama;
+      document.getElementById('userAvatar').textContent = user.nama.charAt(0);
+      document.getElementById('userRole').textContent = isAdmin ? 'Administrator' : 'Peserta Magang';
+    }
+
+    function loadProfile() {
+      if (!user) return;
+      document.getElementById('profileAvatar').textContent = user.nama.charAt(0);
+      document.getElementById('profileName').textContent = user.nama;
+      document.getElementById('profileRole').textContent = isAdmin ? 'Administrator' : 'Peserta Magang - ' + DB.getNamaDivisi(user.divisiId);
+
+      const fields = document.getElementById('profileFields');
+      if (isAdmin) {
+        fields.innerHTML = `
+          <div><small class="text-muted">Username</small><p><strong>${user.username}</strong></p></div>
+          <div><small class="text-muted">Email</small><p><strong>${user.email || '-'}</strong></p></div>`;
+      } else {
+        fields.innerHTML = `
+          <div><small class="text-muted">NIM/NIS</small><p><strong>${user.nim || '-'}</strong></p></div>
+          <div><small class="text-muted">Universitas</small><p><strong>${user.universitas || '-'}</strong></p></div>
+          <div><small class="text-muted">Jurusan</small><p><strong>${user.jurusan || '-'}</strong></p></div>
+          <div><small class="text-muted">No. HP</small><p><strong>${user.hp || '-'}</strong></p></div>
+          <div><small class="text-muted">Email</small><p><strong>${user.email || '-'}</strong></p></div>
+          <div><small class="text-muted">Alamat</small><p><strong>${user.alamat || '-'}</strong></p></div>
+          <div><small class="text-muted">Divisi</small><p><strong>${DB.getNamaDivisi(user.divisiId)}</strong></p></div>
+          <div><small class="text-muted">Pembimbing</small><p><strong>${DB.getNamaPembimbing(user.pembimbingId)}</strong></p></div>
+          <div><small class="text-muted">Tanggal Mulai</small><p><strong>${user.tanggalMulai || '-'}</strong></p></div>
+          <div><small class="text-muted">Tanggal Selesai</small><p><strong>${user.tanggalSelesai || '-'}</strong></p></div>`;
+      }
+
+      const info = document.getElementById('accountInfo');
+      info.innerHTML = `
+        <div class="mb-3"><small class="text-muted">Username</small><p><strong>${user.username}</strong></p></div>
+        <div class="mb-3"><small class="text-muted">Role</small><p><strong>${isAdmin ? 'Administrator' : 'Peserta Magang'}</strong></p></div>
+        <div><small class="text-muted">Terdaftar sejak</small><p><strong>2026</strong></p></div>`;
+    }
+
+    function showEditProfile() {
+      if (isAdmin) { showToast('Fitur edit profil untuk admin terbatas', 'warning'); return; }
+      document.getElementById('profileDisplay').classList.add('d-none');
+      document.getElementById('formEditProfile').classList.remove('d-none');
+      document.getElementById('epNama').value = user.nama || '';
+      document.getElementById('epNim').value = user.nim || '';
+      document.getElementById('epUniv').value = user.universitas || '';
+      document.getElementById('epJurusan').value = user.jurusan || '';
+      document.getElementById('epHp').value = user.hp || '';
+      document.getElementById('epEmail').value = user.email || '';
+      document.getElementById('epAlamat').value = user.alamat || '';
+    }
+
+    function cancelEditProfile() {
+      document.getElementById('formEditProfile').classList.add('d-none');
+      document.getElementById('profileDisplay').classList.remove('d-none');
+    }
+
+    document.getElementById('formEditProfile')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const data = {
+        nama: document.getElementById('epNama').value.trim(),
+        nim: document.getElementById('epNim').value.trim(),
+        universitas: document.getElementById('epUniv').value.trim(),
+        jurusan: document.getElementById('epJurusan').value.trim(),
+        hp: document.getElementById('epHp').value.trim(),
+        email: document.getElementById('epEmail').value.trim(),
+        alamat: document.getElementById('epAlamat').value.trim()
+      };
+      if (!data.nama) { showToast('Nama wajib diisi', 'error'); return; }
+      UserManager.updateProfil(user.id, data);
+      showToast('Profil berhasil diperbarui', 'success');
+      cancelEditProfile();
+      // Update local user reference
+      Object.assign(user, data);
+      loadProfile();
+      document.getElementById('userName').textContent = user.nama;
+      document.getElementById('profileAvatar').textContent = user.nama.charAt(0);
+      document.getElementById('userAvatar').textContent = user.nama.charAt(0);
+    });
+
+    document.getElementById('formChangePassword')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const old = document.getElementById('cpOld').value;
+      const newP = document.getElementById('cpNew').value;
+      const confirm = document.getElementById('cpConfirm').value;
+
+      if (!old || !newP || !confirm) { showToast('Semua field password wajib diisi', 'error'); return; }
+      if (newP.length < 6) { showToast('Password baru minimal 6 karakter', 'error'); return; }
+      if (newP !== confirm) { showToast('Konfirmasi password tidak cocok', 'error'); return; }
+
+      const result = UserManager.changePassword(user.id, old, newP);
+      if (!result.success) { showToast(result.message, 'error'); return; }
+      showToast('Password berhasil diganti', 'success');
+      document.getElementById('formChangePassword').reset();
+    });
+
+    buildSidebar();
+    loadProfile();
+  </script>
+</body>
+</html>

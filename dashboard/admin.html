@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Admin - MagangHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- ===== NAVBAR ===== -->
+  <nav class="navbar-custom">
+    <div class="navbar-left">
+      <button class="nav-toggle" id="toggleSidebar" aria-label="Toggle sidebar">
+        <i class="fas fa-bars"></i>
+      </button>
+      <div class="navbar-brand">
+        <i class="fas fa-briefcase"></i>
+        <span>MagangHub</span>
+      </div>
+      <h3 id="pageTitle" style="color:#fff;font-size:0.95rem;font-weight:500;margin-left:8px;opacity:0.85">Dashboard Admin</h3>
+    </div>
+    <div class="navbar-right">
+      <button class="nav-btn" id="darkModeToggle" aria-label="Toggle dark mode">
+        <i class="fas fa-moon"></i>
+      </button>
+      <button class="nav-btn" aria-label="Notifications">
+        <i class="fas fa-bell"></i>
+        <span class="badge-dot"></span>
+      </button>
+      <div class="header-user">
+        <div class="avatar" id="userAvatar">A</div>
+        <div class="user-info">
+          <div class="name" id="userName">Admin</div>
+          <div class="role">Administrator</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ===== APP LAYOUT ===== -->
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <i class="fas fa-briefcase"></i>
+        <h2>MagangHub</h2>
+      </div>
+      <nav class="sidebar-menu">
+        <div class="sidebar-label">Menu Utama</div>
+        <a href="admin.html" class="sidebar-item active" data-page="dashboard"><i class="fas fa-th-large"></i> <span>Dashboard</span></a>
+        <a href="#" class="sidebar-item" data-page="magang"><i class="fas fa-users"></i> <span>Peserta Magang</span></a>
+        <a href="#" class="sidebar-item" data-page="divisi"><i class="fas fa-building"></i> <span>Divisi</span></a>
+        <a href="#" class="sidebar-item" data-page="pembimbing"><i class="fas fa-chalkboard-user"></i> <span>Pembimbing</span></a>
+        <a href="#" class="sidebar-item" data-page="aktivitas"><i class="fas fa-tasks"></i> <span>Jurnal Harian</span></a>
+        <a href="../pages/laporan-bulanan.html" class="sidebar-item"><i class="fas fa-file-upload"></i> <span>Laporan Bulanan</span></a>
+        <a href="#" class="sidebar-item" data-page="absensi"><i class="fas fa-calendar-check"></i> <span>Absensi</span></a>
+        <a href="#" class="sidebar-item" data-page="laporan"><i class="fas fa-file-alt"></i> <span>Laporan</span></a>
+
+        <div class="sidebar-divider"></div>
+
+        <div class="sidebar-label">Lainnya</div>
+        <a href="#" class="sidebar-item" data-page="profil"><i class="fas fa-user-cog"></i> <span>Pengaturan</span></a>
+        <a href="#" class="sidebar-item logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>
+      </nav>
+    </aside>
+
+    <main class="main-content" id="mainContent">
+      <div class="page-content" id="pageContent">
+
+        <!-- Dashboard View -->
+        <div id="view-dashboard">
+          <div class="page-header">
+            <div>
+              <h1>Dashboard</h1>
+              <p class="subtitle">Overview sistem manajemen magang</p>
+            </div>
+            <div>
+              <button class="btn btn-sm btn-outline" onclick="refreshData()"><i class="fas fa-sync-alt"></i> Refresh</button>
+            </div>
+          </div>
+
+          <div class="stats-grid col-6" id="statsGrid">
+            <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-users"></i></div><div class="stat-info"><span class="number" id="statTotalMagang">0</span><span class="label">Peserta Magang</span></div></div>
+            <div class="stat-card"><div class="stat-icon purple"><i class="fas fa-building"></i></div><div class="stat-info"><span class="number" id="statTotalDivisi">0</span><span class="label">Divisi</span></div></div>
+            <div class="stat-card"><div class="stat-icon green"><i class="fas fa-chalkboard-user"></i></div><div class="stat-info"><span class="number" id="statTotalPembimbing">0</span><span class="label">Pembimbing</span></div></div>
+            <div class="stat-card"><div class="stat-icon orange"><i class="fas fa-tasks"></i></div><div class="stat-info"><span class="number" id="statAktivitasHariIni">0</span><span class="label">Jurnal Hari Ini</span></div></div>
+            <div class="stat-card"><div class="stat-icon red"><i class="fas fa-clock"></i></div><div class="stat-info"><span class="number" id="statMenunggu">0</span><span class="label">Menunggu Approval</span></div></div>
+            <div class="stat-card"><div class="stat-icon green"><i class="fas fa-check-circle"></i></div><div class="stat-info"><span class="number" id="statDisetujui">0</span><span class="label">Disetujui</span></div></div>
+          </div>
+
+          <div class="stats-grid col-6" id="absensiStatsGrid">
+            <div class="stat-card"><div class="stat-icon green"><i class="fas fa-user-check"></i></div><div class="stat-info"><span class="number" id="statHadir">0</span><span class="label">Hadir</span></div></div>
+            <div class="stat-card"><div class="stat-icon orange"><i class="fas fa-user-clock"></i></div><div class="stat-info"><span class="number" id="statTerlambat">0</span><span class="label">Terlambat</span></div></div>
+            <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-user-md"></i></div><div class="stat-info"><span class="number" id="statIzin">0</span><span class="label">Izin</span></div></div>
+            <div class="stat-card"><div class="stat-icon orange"><i class="fas fa-thermometer"></i></div><div class="stat-info"><span class="number" id="statSakit">0</span><span class="label">Sakit</span></div></div>
+            <div class="stat-card"><div class="stat-icon red"><i class="fas fa-user-slash"></i></div><div class="stat-info"><span class="number" id="statAlpha">0</span><span class="label">Alpha</span></div></div>
+            <div class="stat-card"><div class="stat-icon red"><i class="fas fa-ban"></i></div><div class="stat-info"><span class="number" id="statDitolak">0</span><span class="label">Ditolak</span></div></div>
+          </div>
+
+          <div class="chart-grid col-2">
+            <div class="chart-card"><h3><i class="fas fa-chart-bar"></i> Jurnal per Bulan</h3><canvas id="chartAktivitasBulan"></canvas></div>
+            <div class="chart-card"><h3><i class="fas fa-chart-pie"></i> Jurnal per Divisi</h3><canvas id="chartAktivitasDivisi"></canvas></div>
+            <div class="chart-card"><h3><i class="fas fa-chart-line"></i> Kehadiran per Bulan</h3><canvas id="chartKehadiranBulan"></canvas></div>
+            <div class="chart-card"><h3><i class="fas fa-chart-doughnut"></i> Status Kehadiran Hari Ini</h3><canvas id="chartStatusAbsensi"></canvas></div>
+          </div>
+
+          <div class="tabel-card">
+            <h3><i class="fas fa-history"></i> Jurnal Terbaru</h3>
+            <div class="table-wrapper"><table><thead><tr><th>Tanggal</th><th>Nama</th><th>Jurnal</th><th>Divisi</th><th>Progress</th><th>Status</th></tr></thead><tbody id="aktivitasTerbaruBody"></tbody></table></div>
+          </div>
+
+          <div class="tabel-card">
+            <h3><i class="fas fa-clipboard-list"></i> Absensi Hari Ini</h3>
+            <div class="table-wrapper"><table><thead><tr><th>Nama</th><th>Jam Masuk</th><th>Jam Pulang</th><th>Status</th><th>Keterangan</th></tr></thead><tbody id="absensiHariIniBody"></tbody></table></div>
+          </div>
+        </div>
+
+        <!-- CRUD Anak Magang -->
+        <div id="view-magang" class="d-none">
+          <div class="page-header">
+            <div><h1>Data Peserta Magang</h1><p class="subtitle">Kelola data peserta magang</p></div>
+            <button class="btn btn-primary btn-sm" onclick="openFormMagang()"><i class="fas fa-plus"></i> Tambah</button>
+          </div>
+          <div class="toolbar">
+            <div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchMagang" placeholder="Cari nama / NIM / universitas..."></div>
+          </div>
+          <div class="table-wrapper"><table><thead><tr><th>Nama</th><th>NIM/NIS</th><th>Universitas</th><th>Divisi</th><th>Pembimbing</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="magangBody"></tbody></table></div>
+        </div>
+
+        <!-- CRUD Divisi -->
+        <div id="view-divisi" class="d-none">
+          <div class="page-header">
+            <div><h1>Data Divisi</h1><p class="subtitle">Kelola divisi perusahaan</p></div>
+            <button class="btn btn-primary btn-sm" onclick="openFormDivisi()"><i class="fas fa-plus"></i> Tambah</button>
+          </div>
+          <div class="table-wrapper"><table><thead><tr><th>Nama Divisi</th><th>Deskripsi</th><th>Aksi</th></tr></thead><tbody id="divisiBody"></tbody></table></div>
+        </div>
+
+        <!-- CRUD Pembimbing -->
+        <div id="view-pembimbing" class="d-none">
+          <div class="page-header">
+            <div><h1>Data Pembimbing</h1><p class="subtitle">Kelola data pembimbing magang</p></div>
+            <button class="btn btn-primary btn-sm" onclick="openFormPembimbing()"><i class="fas fa-plus"></i> Tambah</button>
+          </div>
+          <div class="table-wrapper"><table><thead><tr><th>Nama</th><th>Username</th><th>NIP</th><th>Email</th><th>Divisi</th><th>Aksi</th></tr></thead><tbody id="pembimbingBody"></tbody></table></div>
+        </div>
+
+        <!-- Aktivitas View -->
+        <div id="view-aktivitas" class="d-none">
+          <div class="page-header">
+            <div><h1>Jurnal Harian</h1><p class="subtitle">Pantau jurnal harian magang</p></div>
+          </div>
+          <div class="toolbar">
+            <div class="search-box"><i class="fas fa-search"></i><input type="text" id="aSearch" placeholder="Cari jurnal..."></div>
+            <div class="filter-group">
+              <select id="aFilterStatus"><option value="">Semua Status</option><option value="menunggu">Menunggu</option><option value="disetujui">Disetujui</option><option value="ditolak">Ditolak</option></select>
+              <select id="aFilterDivisi"><option value="">Semua Divisi</option></select>
+            </div>
+          </div>
+          <div class="table-wrapper"><table><thead><tr><th>Tanggal</th><th>Nama</th><th>Judul</th><th>Divisi</th><th>Progress</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="aBody"></tbody></table></div>
+        </div>
+
+        <!-- Absensi View -->
+        <div id="view-absensi" class="d-none">
+          <div class="page-header">
+            <div><h1>Absensi</h1><p class="subtitle">Data kehadiran magang</p></div>
+          </div>
+          <div class="toolbar">
+            <div class="search-box"><i class="fas fa-search"></i><input type="text" id="abSearch" placeholder="Cari nama..."></div>
+            <div class="filter-group">
+              <select id="abBulan"><option value="">Semua Bulan</option>
+                <option value="01">Jan</option><option value="02">Feb</option><option value="03">Mar</option><option value="04">Apr</option><option value="05">Mei</option><option value="06">Jun</option>
+                <option value="07">Jul</option><option value="08">Agu</option><option value="09">Sep</option><option value="10">Okt</option><option value="11">Nov</option><option value="12">Des</option>
+              </select>
+              <select id="abTahun"><option value="">Semua Tahun</option><option value="2026">2026</option></select>
+            </div>
+          </div>
+          <div class="table-wrapper"><table><thead><tr><th>Tanggal</th><th>Nama</th><th>Jam Masuk</th><th>Jam Pulang</th><th>Durasi</th><th>Status</th></tr></thead><tbody id="abBody"></tbody></table></div>
+        </div>
+
+        <!-- Laporan View -->
+        <div id="view-laporan" class="d-none">
+          <div class="page-header">
+            <div><h1>Laporan</h1><p class="subtitle">Cetak dan export laporan</p></div>
+          </div>
+          <div class="d-flex gap-3 mb-4">
+            <button class="btn btn-sm btn-outline" onclick="exportPDF('aktivitas')"><i class="fas fa-file-pdf"></i> PDF Jurnal</button>
+            <button class="btn btn-sm btn-outline" onclick="exportExcel('aktivitas')"><i class="fas fa-file-excel"></i> Excel Jurnal</button>
+            <button class="btn btn-sm btn-outline" onclick="exportPDF('absensi')"><i class="fas fa-file-pdf"></i> PDF Absensi</button>
+            <button class="btn btn-sm btn-outline" onclick="exportExcel('absensi')"><i class="fas fa-file-excel"></i> Excel Absensi</button>
+          </div>
+          <div class="table-wrapper"><table id="tblLapAktivitas"><thead><tr><th>Tanggal</th><th>Nama</th><th>Jurnal</th><th>Status</th></tr></thead><tbody id="lapAktivitasBody"></tbody></table></div>
+          <div class="table-wrapper mt-4"><table id="tblLapAbsensi"><thead><tr><th>Tanggal</th><th>Nama</th><th>Jam Masuk</th><th>Jam Pulang</th><th>Status</th></tr></thead><tbody id="lapAbsensiBody"></tbody></table></div>
+        </div>
+
+        <!-- Profil View -->
+        <div id="view-profil" class="d-none">
+          <div class="page-header">
+            <div><h1>Pengaturan Akun</h1><p class="subtitle">Kelola profil dan password</p></div>
+          </div>
+          <div class="row row-2">
+            <div class="card" id="profilCard">
+              <h3 class="mb-4"><i class="fas fa-user"></i> Profil Admin</h3>
+              <div id="profilDisplay"></div>
+            </div>
+            <div class="card">
+              <h3 class="mb-4"><i class="fas fa-lock"></i> Ganti Password</h3>
+              <form id="formGantiPassword">
+                <div class="form-group"><label>Password Lama</label><input type="password" id="gpOld" required></div>
+                <div class="form-group"><label>Password Baru</label><input type="password" id="gpNew" required></div>
+                <div class="form-group"><label>Konfirmasi</label><input type="password" id="gpConfirm" required></div>
+                <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center"><i class="fas fa-key"></i> Ganti Password</button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal Form -->
+  <div class="modal-overlay" id="modalForm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalFormTitle">Form</h2>
+        <button class="modal-close" onclick="closeModal('modalForm')"><i class="fas fa-times"></i></button>
+      </div>
+      <div id="modalFormBody"></div>
+    </div>
+  </div>
+
+  <!-- Modal Detail -->
+  <div class="modal-overlay" id="modalDetail">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalDetailTitle">Detail</h2>
+        <button class="modal-close" onclick="closeModal('modalDetail')"><i class="fas fa-times"></i></button>
+      </div>
+      <div id="modalDetailBody"></div>
+    </div>
+  </div>
+
+  <!-- Modal Detail Aktivitas -->
+  <div class="modal-overlay" id="modalDetailAktivitas">
+    <div class="modal-content">
+      <div class="modal-header"><h2>Detail Jurnal</h2><button class="modal-close" onclick="closeModal('modalDetailAktivitas')"><i class="fas fa-times"></i></button></div>
+      <div id="detailAktivitasBody"></div>
+    </div>
+  </div>
+
+  <!-- Modal Approval -->
+  <div class="modal-overlay" id="modalApproval">
+    <div class="modal-content">
+      <div class="modal-header"><h2>Approval Jurnal</h2><button class="modal-close" onclick="closeModal('modalApproval')"><i class="fas fa-times"></i></button></div>
+      <div class="alert alert-info mb-4"><i class="fas fa-info-circle"></i> Beri catatan untuk jurnal ini</div>
+      <div class="form-group"><label>Catatan</label><textarea id="fApprovalCatatan" rows="3" placeholder="Catatan admin..."></textarea></div>
+      <div class="d-flex gap-3">
+        <button class="btn btn-success" id="btnApprovalApprove" style="flex:1;justify-content:center"><i class="fas fa-check"></i> Setujui</button>
+        <button class="btn btn-danger" id="btnApprovalReject" style="flex:1;justify-content:center"><i class="fas fa-times"></i> Tolak</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Edit Status Absensi -->
+  <div class="modal-overlay" id="modalEditStatus">
+    <div class="modal-content">
+      <div class="modal-header"><h2>Edit Status Absensi</h2><button class="modal-close" onclick="closeModal('modalEditStatus')"><i class="fas fa-times"></i></button></div>
+      <div class="form-group"><label>Status</label><select id="esStatus">
+        <option value="hadir">Hadir</option><option value="terlambat">Terlambat</option>
+        <option value="izin">Izin</option><option value="sakit">Sakit</option><option value="alpha">Alpha</option><option value="libur">Libur</option>
+      </select></div>
+      <div class="form-group"><label>Keterangan</label><textarea id="esKeterangan" rows="2"></textarea></div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="simpanEditStatus()"><i class="fas fa-save"></i> Simpan</button>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="../data/dummy-data.js"></script>
+  <script src="../js/storage.js"></script>
+  <script src="../js/validation.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/chart.js"></script>
+  <script src="../js/dashboard.js"></script>
+  <script src="../js/admin.js"></script>
+  <script src="../js/absensi.js"></script>
+  <script src="../js/aktivitas.js"></script>
+  <script src="../js/user.js"></script>
+  <script src="../js/animations.js"></script>
+  <script>
+    DB.init();
+    Auth.requireRole('admin');
+    const currentUser = Auth.getCurrentUser();
+    let editingId = null;
+
+    function showToast(msg, type = 'success') {
+      const c = document.getElementById('toast-container');
+      const t = document.createElement('div');
+      t.className = 'toast toast-' + type;
+      t.innerHTML = '<i class="fas ' + (type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle') + '"></i> ' + msg;
+      c.appendChild(t);
+      setTimeout(() => { t.classList.add('toast-remove'); setTimeout(() => t.remove(), 300); }, 3000);
+    }
+
+    document.getElementById('toggleSidebar').addEventListener('click', () => {
+      const sb = document.getElementById('sidebar');
+      const mc = document.getElementById('mainContent');
+      if (window.innerWidth > 991.98) {
+        sb.classList.toggle('active');
+        sb.classList.toggle('expanded');
+        mc.classList.toggle('shifted');
+      } else {
+        sb.classList.toggle('active');
+        document.getElementById('sidebarOverlay').classList.toggle('active');
+      }
+    });
+    document.getElementById('sidebarOverlay').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.remove('active');
+      document.getElementById('sidebarOverlay').classList.remove('active');
+    });
+
+    (function initSidebarHover() {
+      const sb = document.getElementById('sidebar');
+      const mc = document.getElementById('mainContent');
+      let sbTimer;
+      sb.addEventListener('mouseenter', () => {
+        clearTimeout(sbTimer);
+        if (window.innerWidth > 991.98) {
+          sb.classList.add('expanded');
+          mc.classList.add('shifted');
+        }
+      });
+      sb.addEventListener('mouseleave', () => {
+        if (window.innerWidth > 991.98 && !sb.classList.contains('active')) {
+          sbTimer = setTimeout(() => {
+            sb.classList.remove('expanded');
+            mc.classList.remove('shifted');
+          }, 300);
+        }
+      });
+    })();
+
+    document.querySelectorAll('.sidebar-item[data-page]').forEach(item => {
+      item.addEventListener('click', function(e) {
+        e.preventDefault();
+        const page = this.dataset.page;
+        document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+        document.querySelectorAll('.page-content > div[id^="view-"]').forEach(v => v.classList.add('d-none'));
+        const view = document.getElementById('view-' + page);
+        if (view) {
+          view.classList.remove('d-none');
+          document.getElementById('pageTitle').textContent = this.textContent.trim();
+          if (page === 'magang') renderMagang();
+          else if (page === 'divisi') renderDivisi();
+          else if (page === 'pembimbing') renderPembimbing();
+          else if (page === 'aktivitas') renderAktivitasAdmin();
+          else if (page === 'absensi') renderAbsensiAdmin();
+          else if (page === 'laporan') renderLaporanAdmin();
+          else if (page === 'profil') renderProfilAdmin();
+        }
+        if (window.innerWidth <= 768) {
+          document.getElementById('sidebar').classList.remove('active');
+          document.getElementById('sidebarOverlay').classList.remove('active');
+        }
+      });
+    });
+
+    document.getElementById('darkModeToggle').addEventListener('click', () => {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      if (isDark) { document.documentElement.removeAttribute('data-theme'); localStorage.setItem('theme', 'light'); }
+      else { document.documentElement.setAttribute('data-theme', 'dark'); localStorage.setItem('theme', 'dark'); }
+      updateCharts();
+    });
+    if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+
+    document.getElementById('logoutBtn').addEventListener('click', (e) => {
+      e.preventDefault();
+      showToast('Logout berhasil', 'info');
+      setTimeout(() => Auth.logout(), 1000);
+    });
+
+    document.querySelector('.nav-btn[aria-label="Notifications"]')?.addEventListener('click', () => {
+      showToast('Tidak ada notifikasi baru', 'info');
+    });
+
+    if (currentUser) {
+      document.getElementById('userName').textContent = currentUser.nama;
+      document.getElementById('userAvatar').textContent = currentUser.nama.charAt(0);
+    }
+
+    function updateDashboard() {
+      const stats = Dashboard.getStatsAdmin();
+      document.getElementById('statTotalMagang').textContent = stats.totalMagang;
+      document.getElementById('statTotalDivisi').textContent = stats.totalDivisi;
+      document.getElementById('statTotalPembimbing').textContent = stats.totalPembimbing;
+      document.getElementById('statAktivitasHariIni').textContent = stats.aktivitasHariIni;
+      document.getElementById('statMenunggu').textContent = stats.aktivitasMenunggu;
+      document.getElementById('statDisetujui').textContent = stats.aktivitasDisetujui;
+      document.getElementById('statHadir').textContent = stats.hadir;
+      document.getElementById('statTerlambat').textContent = stats.terlambat;
+      document.getElementById('statIzin').textContent = stats.izin;
+      document.getElementById('statSakit').textContent = stats.sakit;
+      document.getElementById('statAlpha').textContent = stats.alpha;
+      document.getElementById('statDitolak').textContent = stats.aktivitasDitolak;
+    }
+
+    function updateCharts() {
+      const apm = Dashboard.getAktivitasPerMonth();
+      ChartManager.bar('chartAktivitasBulan', apm.labels, apm.data, 'Jurnal', '#2F3BFF');
+
+      const apd = Dashboard.getAktivitasPerDivisi();
+      ChartManager.doughnut('chartAktivitasDivisi', apd.labels, apd.data, ['#2F3BFF','#5B3DF5','#28A745','#F59E0B','#DC3545']);
+
+      const kbm = Dashboard.getKehadiranPerMonth();
+      ChartManager.line('chartKehadiranBulan', kbm.labels, [
+        { label: 'Hadir', data: kbm.hadir, borderColor: '#28A745', backgroundColor: 'rgba(40,167,69,0.1)', fill: true },
+        { label: 'Terlambat', data: kbm.terlambat, borderColor: '#F59E0B', backgroundColor: 'rgba(245,158,11,0.1)', fill: true }
+      ]);
+
+      const stats = Dashboard.getStatsAdmin();
+      ChartManager.doughnut('chartStatusAbsensi', ['Hadir','Terlambat','Izin','Sakit','Alpha'], [stats.hadir, stats.terlambat, stats.izin, stats.sakit, stats.alpha], ['#28A745','#F59E0B','#3498DB','#F97316','#DC3545']);
+    }
+
+    function renderAktivitasTerbaru() {
+      const list = Dashboard.getAktivitasTerbaru(10);
+      const tbody = document.getElementById('aktivitasTerbaruBody');
+      if (!list.length) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Belum ada aktivitas</td></tr>'; return; }
+      tbody.innerHTML = list.map(a => {
+        const statusClass = a.status === 'disetujui' ? 'badge-success' : a.status === 'ditolak' ? 'badge-danger' : 'badge-warning';
+        const statusLabel = a.status.charAt(0).toUpperCase() + a.status.slice(1);
+        return `<tr>
+          <td>${a.tanggal}</td>
+          <td>${DB.getNamaUser(a.userId)}</td>
+          <td>${a.judul}</td>
+          <td>${DB.getNamaDivisi(a.divisiId)}</td>
+          <td>${a.progress}%</td>
+          <td><span class="badge ${statusClass}">${statusLabel}</span></td>
+        </tr>`;
+      }).join('');
+    }
+
+    function renderAbsensiHariIni() {
+      const list = Dashboard.getAbsensiHariIni();
+      const tbody = document.getElementById('absensiHariIniBody');
+      if (!list.length) { tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Belum ada absensi hari ini</td></tr>'; return; }
+      tbody.innerHTML = list.map(a => {
+        const sc = AbsensiManager.getStatusColor(a.status);
+        return `<tr>
+          <td>${DB.getNamaUser(a.userId)}</td>
+          <td>${a.jamMasuk}</td>
+          <td>${a.jamPulang}</td>
+          <td><span class="badge" style="background:${sc}22;color:${sc}">${AbsensiManager.getStatusLabel(a.status)}</span></td>
+          <td>${a.keterangan}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    function refreshData() {
+      updateDashboard();
+      updateCharts();
+      renderAktivitasTerbaru();
+      renderAbsensiHariIni();
+      showToast('Data berhasil diperbarui', 'success');
+    }
+
+    function renderMagang() {
+      const keyword = document.getElementById('searchMagang')?.value || '';
+      const list = AdminManager.searchMagang(keyword);
+      const tbody = document.getElementById('magangBody');
+      if (!list.length) { tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Tidak ada data</td></tr>'; return; }
+      tbody.innerHTML = list.map(u => `
+        <tr>
+          <td><strong>${u.nama}</strong></td>
+          <td>${u.nim || '-'}</td>
+          <td>${u.universitas || '-'}</td>
+          <td>${DB.getNamaDivisi(u.divisiId)}</td>
+          <td>${DB.getNamaPembimbing(u.pembimbingId)}</td>
+          <td><span class="badge badge-success">Aktif</span></td>
+          <td>
+            <div class="table-actions">
+              <button class="btn btn-sm btn-outline" onclick="editMagang(${u.id})"><i class="fas fa-edit"></i></button>
+              <button class="btn btn-sm btn-danger" onclick="deleteMagang(${u.id})"><i class="fas fa-trash"></i></button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    document.getElementById('searchMagang')?.addEventListener('input', renderMagang);
+
+    function openFormMagang(data) {
+      editingId = data?.id || null;
+      const isEdit = !!editingId;
+      document.getElementById('modalFormTitle').textContent = isEdit ? 'Edit Peserta Magang' : 'Tambah Peserta Magang';
+      const divisi = DB.get('divisi');
+      const pembimbing = DB.get('pembimbing');
+      if (!divisi.length || !pembimbing.length) {
+        showToast('Tambahkan divisi dan pembimbing terlebih dahulu sebelum menambah siswa', 'warning');
+        return;
+      }
+      document.getElementById('modalFormBody').innerHTML = `
+        <form id="formMagang">
+          <input type="hidden" id="fMagangId" value="${data?.id || ''}">
+          <div class="row row-2">
+            <div class="form-group">
+              <label>Nama Lengkap</label>
+              <input type="text" id="fMagangNama" value="${data?.nama || ''}" required>
+              <small class="error-msg"></small>
+            </div>
+            <div class="form-group">
+              <label>Username</label>
+              <input type="text" id="fMagangUsername" value="${data?.username || ''}" ${isEdit ? 'readonly style="background:var(--bg)"' : ''} required>
+              <small class="error-msg"></small>
+            </div>
+          </div>
+          ${isEdit ? '' : '<div class="form-group"><label>Password</label><input type="password" id="fMagangPassword" value="123456" required><small class="error-msg"></small></div>'}
+          <div class="row row-2">
+            <div class="form-group"><label>NIM/NIS</label><input type="text" id="fMagangNim" value="${data?.nim || ''}"><small class="error-msg"></small></div>
+            <div class="form-group"><label>Universitas/Sekolah</label><input type="text" id="fMagangUniv" value="${data?.universitas || ''}"><small class="error-msg"></small></div>
+          </div>
+          <div class="row row-2">
+            <div class="form-group"><label>Jurusan</label><input type="text" id="fMagangJurusan" value="${data?.jurusan || ''}"><small class="error-msg"></small></div>
+            <div class="form-group"><label>No. HP</label><input type="text" id="fMagangHp" value="${data?.hp || ''}"><small class="error-msg"></small></div>
+          </div>
+          <div class="row row-2">
+            <div class="form-group"><label>Email</label><input type="email" id="fMagangEmail" value="${data?.email || ''}"><small class="error-msg"></small></div>
+            <div class="form-group"><label>Alamat</label><input type="text" id="fMagangAlamat" value="${data?.alamat || ''}"><small class="error-msg"></small></div>
+          </div>
+          <div class="row row-2">
+            <div class="form-group"><label>Divisi</label><select id="fMagangDivisi">${divisi.map(d => '<option value="'+d.id+'" '+(data?.divisiId==d.id?'selected':'')+'>'+d.nama+'</option>').join('')}</select></div>
+            <div class="form-group"><label>Pembimbing</label><select id="fMagangPembimbing">${pembimbing.map(p => '<option value="'+p.id+'" '+(data?.pembimbingId==p.id?'selected':'')+'>'+p.nama+'</option>').join('')}</select></div>
+          </div>
+          <div class="row row-2">
+            <div class="form-group"><label>Tanggal Mulai</label><input type="date" id="fMagangMulai" value="${data?.tanggalMulai || ''}"></div>
+            <div class="form-group"><label>Tanggal Selesai</label><input type="date" id="fMagangSelesai" value="${data?.tanggalSelesai || ''}"></div>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px"><i class="fas fa-save"></i> Simpan</button>
+        </form>`;
+      document.getElementById('modalForm').classList.add('active');
+
+      document.getElementById('formMagang').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const dataForm = {
+          nama: document.getElementById('fMagangNama').value.trim(),
+          username: document.getElementById('fMagangUsername').value.trim(),
+          nim: document.getElementById('fMagangNim').value.trim(),
+          universitas: document.getElementById('fMagangUniv').value.trim(),
+          jurusan: document.getElementById('fMagangJurusan').value.trim(),
+          hp: document.getElementById('fMagangHp').value.trim(),
+          email: document.getElementById('fMagangEmail').value.trim(),
+          alamat: document.getElementById('fMagangAlamat').value.trim(),
+          divisiId: parseInt(document.getElementById('fMagangDivisi').value),
+          pembimbingId: parseInt(document.getElementById('fMagangPembimbing').value),
+          tanggalMulai: document.getElementById('fMagangMulai').value,
+          tanggalSelesai: document.getElementById('fMagangSelesai').value
+        };
+        if (!dataForm.nama || !dataForm.username) { showToast('Nama dan username wajib diisi', 'error'); return; }
+
+        if (isEdit) {
+          AdminManager.updateMagang(editingId, dataForm);
+          showToast('Data berhasil diperbarui', 'success');
+        } else {
+          const pass = document.getElementById('fMagangPassword')?.value || '123456';
+          dataForm.password = pass;
+          const result = AdminManager.addMagang(dataForm);
+          if (!result.success) { showToast(result.message, 'error'); return; }
+          showToast('Data berhasil ditambahkan', 'success');
+        }
+        closeModal('modalForm');
+        renderMagang();
+      });
+    }
+
+    function editMagang(id) {
+      const user = DB.getById('users', id);
+      if (user) openFormMagang(user);
+    }
+
+    function deleteMagang(id) {
+      if (AdminManager.deleteMagang(id)) {
+        renderMagang();
+        showToast('Data berhasil dihapus', 'success');
+      }
+    }
+
+    function renderDivisi() {
+      const list = AdminManager.getDivisi();
+      document.getElementById('divisiBody').innerHTML = list.length ? list.map(d => `
+        <tr>
+          <td><strong>${d.nama}</strong></td>
+          <td>${d.deskripsi || '-'}</td>
+          <td>
+            <div class="table-actions">
+              <button class="btn btn-sm btn-outline" onclick="editDivisi(${d.id})"><i class="fas fa-edit"></i></button>
+              <button class="btn btn-sm btn-danger" onclick="deleteDivisi(${d.id})"><i class="fas fa-trash"></i></button>
+            </div>
+          </td>
+        </tr>
+      `).join('') : '<tr><td colspan="3" class="text-center text-muted">Belum ada data</td></tr>';
+    }
+
+    function openFormDivisi(data) {
+      editingId = data?.id || null;
+      document.getElementById('modalFormTitle').textContent = editingId ? 'Edit Divisi' : 'Tambah Divisi';
+      document.getElementById('modalFormBody').innerHTML = `
+        <form id="formDivisi">
+          <div class="form-group"><label>Nama Divisi</label><input type="text" id="fDivisiNama" value="${data?.nama || ''}" required><small class="error-msg"></small></div>
+          <div class="form-group"><label>Deskripsi</label><textarea id="fDivisiDesk" rows="3">${data?.deskripsi || ''}</textarea></div>
+          <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center"><i class="fas fa-save"></i> Simpan</button>
+        </form>`;
+      document.getElementById('modalForm').classList.add('active');
+      document.getElementById('formDivisi').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const d = { nama: document.getElementById('fDivisiNama').value.trim(), deskripsi: document.getElementById('fDivisiDesk').value.trim() };
+        if (!d.nama) { showToast('Nama divisi wajib diisi', 'error'); return; }
+        if (editingId) AdminManager.updateDivisi(editingId, d);
+        else AdminManager.addDivisi(d);
+        showToast('Data berhasil disimpan', 'success');
+        closeModal('modalForm'); renderDivisi();
+      });
+    }
+
+    function editDivisi(id) { const d = DB.getById('divisi', id); if (d) openFormDivisi(d); }
+    function deleteDivisi(id) {
+      if (confirm('Hapus divisi ini?')) {
+        if (AdminManager.deleteDivisi(id)) {
+          renderDivisi();
+          showToast('Data berhasil dihapus', 'success');
+        }
+      }
+    }
+
+    function renderPembimbing() {
+      const list = AdminManager.getPembimbing();
+      document.getElementById('pembimbingBody').innerHTML = list.length ? list.map(p => {
+        const acc = DB.get('users').find(u => u.pembimbingId === p.id && u.role === 'pembimbing');
+        return `
+        <tr>
+          <td><strong>${p.nama}</strong></td>
+          <td>${acc?.username || '-'}</td>
+          <td>${p.nip || '-'}</td>
+          <td>${p.email || '-'}</td>
+          <td>${DB.getNamaDivisi(p.divisiId)}</td>
+          <td>
+            <div class="table-actions">
+              <button class="btn btn-sm btn-outline" onclick="editPembimbing(${p.id})"><i class="fas fa-edit"></i></button>
+              <button class="btn btn-sm btn-danger" onclick="deletePembimbing(${p.id})"><i class="fas fa-trash"></i></button>
+            </div>
+          </td>
+        </tr>`;
+      }).join('') : '<tr><td colspan="6" class="text-center text-muted">Belum ada data</td></tr>';
+    }
+
+    function openFormPembimbing(data) {
+      editingId = data?.id || null;
+      const isEdit = !!editingId;
+      document.getElementById('modalFormTitle').textContent = isEdit ? 'Edit Pembimbing' : 'Tambah Pembimbing';
+      const divisi = DB.get('divisi');
+      const acc = data ? DB.get('users').find(u => u.pembimbingId === data.id && u.role === 'pembimbing') : null;
+      document.getElementById('modalFormBody').innerHTML = `
+        <form id="formPembimbing">
+          <div class="form-group"><label>Nama Pembimbing</label><input type="text" id="fPemNama" value="${data?.nama || ''}" required><small class="error-msg"></small></div>
+          <div class="row row-2">
+            <div class="form-group"><label>Username (login)</label><input type="text" id="fPemUsername" value="${acc?.username || ''}" required><small class="error-msg"></small></div>
+            <div class="form-group"><label>Password</label><input type="text" id="fPemPassword" value="" placeholder="${isEdit ? 'Kosongkan jika tidak diubah' : 'Default: 123456'}"><small class="error-msg"></small></div>
+          </div>
+          <div class="row row-2">
+            <div class="form-group"><label>NIP</label><input type="text" id="fPemNip" value="${data?.nip || ''}"></div>
+            <div class="form-group"><label>Email</label><input type="email" id="fPemEmail" value="${data?.email || ''}"></div>
+          </div>
+          <div class="form-group"><label>Divisi</label><select id="fPemDivisi"><option value="">- Pilih Divisi -</option>${divisi.map(d => '<option value="'+d.id+'" '+(data?.divisiId==d.id?'selected':'')+'>'+d.nama+'</option>').join('')}</select></div>
+          <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center"><i class="fas fa-save"></i> Simpan</button>
+        </form>`;
+      document.getElementById('modalForm').classList.add('active');
+      document.getElementById('formPembimbing').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const p = {
+          nama: document.getElementById('fPemNama').value.trim(),
+          username: document.getElementById('fPemUsername').value.trim(),
+          password: document.getElementById('fPemPassword').value.trim(),
+          nip: document.getElementById('fPemNip').value.trim(),
+          email: document.getElementById('fPemEmail').value.trim(),
+          divisiId: document.getElementById('fPemDivisi').value || null
+        };
+        if (!p.nama || !p.username) { showToast('Nama dan username wajib diisi', 'error'); return; }
+        const result = isEdit ? AdminManager.updatePembimbing(editingId, p) : AdminManager.addPembimbing(p);
+        if (result && !result.success) { showToast(result.message, 'error'); return; }
+        showToast('Data berhasil disimpan', 'success');
+        closeModal('modalForm'); renderPembimbing();
+      });
+    }
+
+    function editPembimbing(id) { const p = DB.getById('pembimbing', id); if (p) openFormPembimbing(p); }
+    function deletePembimbing(id) {
+      if (confirm('Hapus pembimbing ini?')) {
+        if (AdminManager.deletePembimbing(id)) {
+          renderPembimbing();
+          showToast('Data berhasil dihapus', 'success');
+        }
+      }
+    }
+
+    let approvalAktivitasId = null;
+
+    function renderAktivitasAdmin() {
+      const divisiSelect = document.getElementById('aFilterDivisi');
+      if (divisiSelect.options.length <= 1) {
+        DB.get('divisi').forEach(d => { divisiSelect.innerHTML += '<option value="'+d.id+'">'+d.nama+'</option>'; });
+      }
+      const search = document.getElementById('aSearch').value.toLowerCase();
+      const status = document.getElementById('aFilterStatus').value;
+      const divisiId = document.getElementById('aFilterDivisi').value;
+      let list = DB.get('aktivitas').sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+      if (search) list = list.filter(a => a.judul.toLowerCase().includes(search) || DB.getNamaUser(a.userId).toLowerCase().includes(search));
+      if (status) list = list.filter(a => a.status === status);
+      if (divisiId) list = list.filter(a => a.divisiId == divisiId);
+      const tbody = document.getElementById('aBody');
+      if (!list.length) { tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Tidak ada data</td></tr>'; return; }
+      tbody.innerHTML = list.map(a => {
+        const sc = a.status === 'disetujui' ? 'badge-success' : a.status === 'ditolak' ? 'badge-danger' : 'badge-warning';
+        return `<tr>
+          <td>${a.tanggal}</td><td>${DB.getNamaUser(a.userId)}</td>
+          <td>${a.judul}</td><td>${DB.getNamaDivisi(a.divisiId)}</td>
+          <td><div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:5px;background:var(--bg);border-radius:3px;max-width:80px"><div style="width:${a.progress}%;height:100%;background:var(--primary);border-radius:3px"></div></div>${a.progress}%</div></td>
+          <td><span class="badge ${sc}">${a.status}</span></td>
+          <td>
+            <div class="table-actions">
+              <button class="btn btn-sm btn-outline" onclick="detailAktivitasAdmin(${a.id})"><i class="fas fa-eye"></i></button>
+              ${a.status === 'menunggu' ? '<button class="btn btn-sm btn-success" onclick="openApprovalAdmin('+a.id+')"><i class="fas fa-check"></i></button>' : ''}
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    document.getElementById('aSearch')?.addEventListener('input', renderAktivitasAdmin);
+    document.getElementById('aFilterStatus')?.addEventListener('change', renderAktivitasAdmin);
+    document.getElementById('aFilterDivisi')?.addEventListener('change', renderAktivitasAdmin);
+
+    function detailAktivitasAdmin(id) {
+      const a = DB.getById('aktivitas', id);
+      if (!a) return;
+      const sc = a.status === 'disetujui' ? 'badge-success' : a.status === 'ditolak' ? 'badge-danger' : 'badge-warning';
+      const user = DB.getById('users', a.userId);
+      document.getElementById('detailAktivitasBody').innerHTML = `
+        <div class="d-flex align-center gap-3 mb-4">
+          <div style="width:56px;height:56px;border-radius:12px;background:var(--primary-bg);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.3rem"><i class="fas fa-tasks"></i></div>
+          <div><h3 style="font-size:1.1rem;color:var(--dark)">${a.judul}</h3><p class="text-muted">${a.tanggal} | ${a.jam}</p></div>
+        </div>
+        <div class="row row-2 mb-3">
+          <div><small class="text-muted">Nama</small><p><strong>${DB.getNamaUser(a.userId)}</strong></p></div>
+          <div><small class="text-muted">Divisi</small><p><strong>${DB.getNamaDivisi(a.divisiId)}</strong></p></div>
+          <div><small class="text-muted">Pembimbing</small><p><strong>${DB.getNamaPembimbing(user?.pembimbingId)}</strong></p></div>
+          <div><small class="text-muted">Progress</small><p><strong>${a.progress}%</strong></p></div>
+        </div>
+        <div class="mb-3"><small class="text-muted">Deskripsi</small><p>${a.deskripsi}</p></div>
+        ${a.kendala ? '<div class="mb-3"><small class="text-muted">Kendala</small><p>'+a.kendala+'</p></div>' : ''}
+        ${a.solusi ? '<div class="mb-3"><small class="text-muted">Solusi</small><p>'+a.solusi+'</p></div>' : ''}
+        <div class="mb-3"><small class="text-muted">Status</small><div><span class="badge ${sc}" style="font-size:0.85rem">${a.status}</span></div></div>
+        ${a.catatanAdmin ? '<div class="alert alert-info"><i class="fas fa-comment"></i> Catatan Admin: '+a.catatanAdmin+'</div>' : ''}
+        <button class="btn btn-outline" style="width:100%;justify-content:center" onclick="closeModal('modalDetailAktivitas')"><i class="fas fa-times"></i> Tutup</button>`;
+      closeModal('modalApproval');
+      openModal('modalDetailAktivitas');
+    }
+
+    function openApprovalAdmin(id) {
+      approvalAktivitasId = id;
+      document.getElementById('fApprovalCatatan').value = '';
+      openModal('modalApproval');
+    }
+
+    document.addEventListener('click', function(e) {
+      if (e.target.closest('#btnApprovalApprove')) {
+        AktivitasManager.approve(approvalAktivitasId, document.getElementById('fApprovalCatatan').value.trim());
+        closeModal('modalApproval'); showToast('Jurnal disetujui', 'success'); renderAktivitasAdmin();
+      }
+      if (e.target.closest('#btnApprovalReject')) {
+        const catatan = document.getElementById('fApprovalCatatan').value.trim();
+        if (!catatan) { showToast('Berikan catatan', 'warning'); return; }
+        AktivitasManager.reject(approvalAktivitasId, catatan);
+        closeModal('modalApproval'); showToast('Jurnal ditolak', 'info'); renderAktivitasAdmin();
+      }
+    });
+
+    let editAbsensiId = null;
+
+    function renderAbsensiAdmin() {
+      const keyword = document.getElementById('abSearch').value.toLowerCase();
+      const bulan = document.getElementById('abBulan').value;
+      const tahun = document.getElementById('abTahun').value;
+      let list = DB.get('absensi').sort((a,b) => b.tanggal.localeCompare(a.tanggal));
+      if (keyword) list = list.filter(a => DB.getNamaUser(a.userId).toLowerCase().includes(keyword));
+      if (bulan) list = list.filter(a => a.tanggal.slice(5,7) === bulan);
+      if (tahun) list = list.filter(a => a.tanggal.slice(0,4) === tahun);
+      const tbody = document.getElementById('abBody');
+      if (!list.length) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Tidak ada data</td></tr>'; return; }
+      tbody.innerHTML = list.map(a => {
+        const sc = AbsensiManager.getStatusColor(a.status);
+        return `<tr>
+          <td>${a.tanggal}</td><td>${DB.getNamaUser(a.userId)}</td>
+          <td>${a.jamMasuk}</td><td>${a.jamPulang}</td><td>${a.durasi}</td>
+          <td><span class="badge" style="background:${sc}22;color:${sc}">${AbsensiManager.getStatusLabel(a.status)}</span>
+            <button class="btn btn-sm btn-outline" style="margin-left:6px" onclick="openEditStatusAbsensi(${a.id})"><i class="fas fa-edit" style="font-size:0.75rem"></i></button>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    document.getElementById('abSearch')?.addEventListener('input', renderAbsensiAdmin);
+    document.getElementById('abBulan')?.addEventListener('change', renderAbsensiAdmin);
+    document.getElementById('abTahun')?.addEventListener('change', renderAbsensiAdmin);
+
+    function openEditStatusAbsensi(id) {
+      editAbsensiId = id;
+      const a = DB.getById('absensi', id);
+      if (!a) return;
+      document.getElementById('esStatus').value = a.status;
+      document.getElementById('esKeterangan').value = a.keterangan;
+      openModal('modalEditStatus');
+    }
+
+    function simpanEditStatus() {
+      if (!editAbsensiId) return;
+      DB.update('absensi', editAbsensiId, {
+        status: document.getElementById('esStatus').value,
+        keterangan: document.getElementById('esKeterangan').value.trim()
+      });
+      closeModal('modalEditStatus');
+      showToast('Status berhasil diperbarui', 'success');
+      renderAbsensiAdmin();
+    }
+
+    function renderLaporanAdmin() {
+      const aktivitas = DB.get('aktivitas').sort((a,b) => b.tanggal.localeCompare(a.tanggal));
+      const absensi = DB.get('absensi').sort((a,b) => b.tanggal.localeCompare(a.tanggal));
+      document.getElementById('lapAktivitasBody').innerHTML = aktivitas.slice(0,30).map(a => {
+        const sc = a.status === 'disetujui' ? 'badge-success' : a.status === 'ditolak' ? 'badge-danger' : 'badge-warning';
+        return `<tr><td>${a.tanggal}</td><td>${DB.getNamaUser(a.userId)}</td><td>${a.judul}</td><td><span class="badge ${sc}">${a.status}</span></td></tr>`;
+      }).join('') || '<tr><td colspan="4" class="text-center text-muted">Tidak ada data</td></tr>';
+      document.getElementById('lapAbsensiBody').innerHTML = absensi.slice(0,30).map(a => {
+        const sc = AbsensiManager.getStatusColor(a.status);
+        return `<tr><td>${a.tanggal}</td><td>${DB.getNamaUser(a.userId)}</td><td>${a.jamMasuk}</td><td>${a.jamPulang}</td><td><span class="badge" style="background:${sc}22;color:${sc}">${AbsensiManager.getStatusLabel(a.status)}</span></td></tr>`;
+      }).join('') || '<tr><td colspan="5" class="text-center text-muted">Tidak ada data</td></tr>';
+    }
+
+    function exportPDF(type) {
+      const tableId = type === 'aktivitas' ? 'tblLapAktivitas' : 'tblLapAbsensi';
+      const title = type === 'aktivitas' ? 'Laporan Aktivitas' : 'Laporan Absensi';
+      const w = window.open('', '_blank');
+      w.document.write('<html><head><title>'+title+'</title><style>body{font-family:Inter,sans-serif;padding:40px}h2{color:#2F3BFF}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{padding:10px;text-align:left;border-bottom:1px solid #ddd}th{background:#f8fafc}</style></head><body>');
+      w.document.write('<h2>'+title+'</h2><p>'+new Date().toLocaleDateString('id-ID')+'</p>');
+      w.document.write(document.getElementById(tableId).outerHTML);
+      w.document.write('</body></html>');
+      w.document.close();
+      w.print();
+    }
+
+    function exportExcel(type) {
+      const tableId = type === 'aktivitas' ? 'tblLapAktivitas' : 'tblLapAbsensi';
+      const table = document.getElementById(tableId);
+      let csv = '\uFEFF';
+      table.querySelectorAll('tr').forEach(row => {
+        csv += Array.from(row.querySelectorAll('th,td')).map(c => '"'+c.textContent.trim().replace(/"/g,'""')+'"').join(',') + '\n';
+      });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8;'}));
+      a.download = 'laporan-'+type+'.csv';
+      a.click();
+      showToast('File '+type+' berhasil diunduh', 'success');
+    }
+
+    function renderProfilAdmin() {
+      const u = Auth.getCurrentUser();
+      if (!u) return;
+      document.getElementById('profilDisplay').innerHTML = `
+        <div style="text-align:center;margin-bottom:16px">
+          <div style="width:72px;height:72px;border-radius:50%;background:var(--primary-bg);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:600;margin:0 auto 8px">${u.nama.charAt(0)}</div>
+          <h3 style="font-size:1.1rem;color:var(--dark)">${u.nama}</h3>
+          <p class="text-muted">Administrator</p>
+        </div>
+        <div><small class="text-muted">Username</small><p><strong>${u.username}</strong></p></div>
+        <div class="mt-3"><small class="text-muted">Email</small><p><strong>${u.email || '-'}</strong></p></div>`;
+    }
+
+    document.getElementById('formGantiPassword')?.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const old = document.getElementById('gpOld').value;
+      const np = document.getElementById('gpNew').value;
+      const cf = document.getElementById('gpConfirm').value;
+      if (!old || !np || !cf) { showToast('Semua field wajib diisi', 'error'); return; }
+      if (np.length < 6) { showToast('Password baru minimal 6 karakter', 'error'); return; }
+      if (np !== cf) { showToast('Konfirmasi password tidak cocok', 'error'); return; }
+      const result = UserManager.changePassword(currentUser.id, old, np);
+      if (!result.success) { showToast(result.message, 'error'); return; }
+      showToast('Password berhasil diganti', 'success');
+      document.getElementById('formGantiPassword').reset();
+    });
+
+    function openModal(id) { document.getElementById(id)?.classList.add('active'); }
+    function closeModal(id) { document.getElementById(id)?.classList.remove('active'); }
+    window.addEventListener('click', (e) => { if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('active'); });
+
+    function switchView(page) {
+      const navItem = document.querySelector(`.sidebar-item[data-page="${page}"]`);
+      if (navItem) navItem.click();
+    }
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetPage = urlParams.get('page');
+    if (targetPage) switchView(targetPage);
+
+    updateDashboard();
+    updateCharts();
+    renderAktivitasTerbaru();
+    renderAbsensiHariIni();
+  </script>
+</body>
+</html>

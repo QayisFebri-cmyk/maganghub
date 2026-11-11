@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aktivitas - MagangHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <nav class="navbar-custom">
+    <div class="navbar-left">
+      <button class="nav-toggle" id="toggleSidebar" aria-label="Toggle sidebar"><i class="fas fa-bars"></i></button>
+      <div class="navbar-brand"><i class="fas fa-briefcase"></i><span>MagangHub</span></div>
+      <h3 style="color:#fff;font-size:0.95rem;font-weight:500;opacity:0.85">Jurnal Harian</h3>
+    </div>
+    <div class="navbar-right">
+      <button class="nav-btn" id="darkModeToggle" aria-label="Toggle dark mode"><i class="fas fa-moon"></i></button>
+      <div class="header-user">
+        <div class="avatar" id="userAvatar">U</div>
+        <div class="user-info"><div class="name" id="userName">User</div><div class="role" id="userRole">-</div></div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand"><i class="fas fa-briefcase"></i><h2>MagangHub</h2></div>
+      <nav class="sidebar-menu" id="sidebarMenu"></nav>
+    </aside>
+
+    <main class="main-content">
+      <div class="page-content">
+        <div class="page-header">
+          <div><h1>Jurnal Harian</h1><p class="subtitle">Catat dan pantau jurnal harian magang</p></div>
+          <div id="btnTambahContainer">
+            <button class="btn btn-primary btn-sm" onclick="openFormAktivitas()"><i class="fas fa-plus"></i> Tambah Jurnal</button>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchAktivitas" placeholder="Cari jurnal..."></div>
+          <div class="filter-group">
+            <select id="filterStatusAktivitas">
+              <option value="">Semua Status</option>
+              <option value="menunggu">Menunggu</option>
+              <option value="disetujui">Disetujui</option>
+              <option value="ditolak">Ditolak</option>
+            </select>
+            <select id="filterDivisiAktivitas" class="d-none">
+              <option value="">Semua Department</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Tanggal</th><th id="colNama">Nama</th><th>Judul</th><th id="colDivisi">Divisi</th><th>Progress</th><th>Status</th><th>Aksi</th></tr>
+            </thead>
+            <tbody id="aktivitasBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal Form Aktivitas -->
+  <div class="modal-overlay" id="modalAktivitas">
+    <div class="modal-content">
+      <div class="modal-header"><h2 id="modalAktivitasTitle">Tambah Jurnal</h2><button class="modal-close" onclick="closeModal('modalAktivitas')"><i class="fas fa-times"></i></button></div>
+      <form id="formAktivitas">
+        <div class="row row-2">
+          <div class="form-group"><label>Tanggal</label><input type="date" id="fAktTanggal" required></div>
+          <div class="form-group"><label>Jam</label><input type="time" id="fAktJam" required></div>
+        </div>
+        <div class="form-group"><label>Divisi</label><select id="fAktDivisi"></select></div>
+        <div class="form-group"><label>Judul Jurnal</label><input type="text" id="fAktJudul" required><small class="error-msg"></small></div>
+        <div class="form-group"><label>Deskripsi</label><textarea id="fAktDesk" rows="3" required></textarea><small class="error-msg"></small></div>
+        <div class="row row-2">
+          <div class="form-group"><label>Progress (%)</label><input type="number" id="fAktProgress" min="0" max="100" value="0"></div>
+          <div class="form-group"><label>Upload Foto</label><input type="file" id="fAktFoto" accept="image/*"><small class="text-muted" style="display:block;margin-top:4px">Opsional</small></div>
+        </div>
+        <div class="form-group"><label>Kendala</label><textarea id="fAktKendala" rows="2" placeholder="Kendala yang dihadapi"></textarea></div>
+        <div class="form-group"><label>Solusi</label><textarea id="fAktSolusi" rows="2" placeholder="Solusi yang dilakukan"></textarea></div>
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center"><i class="fas fa-save"></i> Simpan Jurnal</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Detail Aktivitas -->
+  <div class="modal-overlay" id="modalDetailAktivitas">
+    <div class="modal-content">
+      <div class="modal-header"><h2>Detail Jurnal</h2><button class="modal-close" onclick="closeModal('modalDetailAktivitas')"><i class="fas fa-times"></i></button></div>
+      <div id="detailAktivitasBody"></div>
+    </div>
+  </div>
+
+  <!-- Modal Approval (Admin) -->
+  <div class="modal-overlay" id="modalApproval">
+    <div class="modal-content">
+      <div class="modal-header"><h2>Approval Jurnal</h2><button class="modal-close" onclick="closeModal('modalApproval')"><i class="fas fa-times"></i></button></div>
+      <form id="formApproval">
+        <div class="alert alert-info"><i class="fas fa-info-circle"></i> Beri catatan untuk jurnal ini</div>
+        <div class="form-group"><label>Catatan</label><textarea id="fApprovalCatatan" rows="3" placeholder="Catatan admin..."></textarea></div>
+        <div class="d-flex gap-3">
+          <button type="submit" class="btn btn-success" id="btnApprovalApprove" style="flex:1;justify-content:center"><i class="fas fa-check"></i> Setujui</button>
+          <button type="button" class="btn btn-danger" id="btnApprovalReject" style="flex:1;justify-content:center"><i class="fas fa-times"></i> Tolak</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="../data/dummy-data.js"></script>
+  <script src="../js/storage.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/chart.js"></script>
+  <script src="../js/dashboard.js"></script>
+  <script src="../js/absensi.js"></script>
+  <script src="../js/aktivitas.js"></script>
+  <script src="../js/admin.js"></script>
+  <script>
+    DB.init();
+    const session = Auth.requireAuth();
+    if (session.role === 'pembimbing') window.location.href = '../dashboard/pembimbing.html';
+    const currentUser = Auth.getCurrentUser();
+    const isAdmin = session.role === 'admin';
+    let editingAktivitasId = null;
+    let approvalAktivitasId = null;
+
+    function showToast(msg, type) {
+      const c = document.getElementById('toast-container');
+      const t = document.createElement('div');
+      t.className = 'toast toast-' + type;
+      t.innerHTML = '<i class="fas ' + (type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle') + '"></i> ' + msg;
+      c.appendChild(t);
+      setTimeout(() => { t.classList.add('toast-remove'); setTimeout(() => t.remove(), 300); }, 3000);
+    }
+
+    function buildSidebar() {
+      const menu = document.getElementById('sidebarMenu');
+      if (isAdmin) {
+        menu.innerHTML = `
+          <div class="sidebar-label">Menu Utama</div>
+          <a href="../dashboard/admin.html" class="sidebar-item"><i class="fas fa-th-large"></i> <span>Dashboard</span></a>
+          <a href="../dashboard/admin.html?page=magang" class="sidebar-item"><i class="fas fa-users"></i> <span>Peserta Magang</span></a>
+          <a href="../dashboard/admin.html?page=divisi" class="sidebar-item"><i class="fas fa-building"></i> <span>Divisi</span></a>
+          <a href="../dashboard/admin.html?page=pembimbing" class="sidebar-item"><i class="fas fa-chalkboard-teacher"></i> <span>Pembimbing</span></a>
+          <a href="aktivitas.html" class="sidebar-item active"><i class="fas fa-tasks"></i> <span>Jurnal Harian</span></a>
+          <a href="laporan-bulanan.html" class="sidebar-item"><i class="fas fa-file-upload"></i> <span>Laporan Bulanan</span></a>
+          <a href="absensi.html" class="sidebar-item"><i class="fas fa-calendar-check"></i> <span>Absensi</span></a>
+          <a href="laporan.html" class="sidebar-item"><i class="fas fa-file-alt"></i> <span>Laporan</span></a>
+          <div class="sidebar-label">Lainnya</div>
+          <a href="profil.html" class="sidebar-item"><i class="fas fa-user-cog"></i> <span>Pengaturan</span></a>
+          <a href="#" class="sidebar-item logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>`;
+      } else {
+        menu.innerHTML = `
+          <div class="sidebar-label">Menu</div>
+          <a href="../dashboard/user.html" class="sidebar-item"><i class="fas fa-th-large"></i> <span>Dashboard</span></a>
+          <a href="absensi.html" class="sidebar-item"><i class="fas fa-calendar-check"></i> <span>Absensi</span></a>
+          <a href="aktivitas.html" class="sidebar-item active"><i class="fas fa-tasks"></i> <span>Jurnal Harian</span></a>
+          <a href="laporan-bulanan.html" class="sidebar-item"><i class="fas fa-file-upload"></i> <span>Laporan Bulanan</span></a>
+          <a href="profil.html" class="sidebar-item"><i class="fas fa-user"></i> <span>Profil</span></a>
+          <div class="sidebar-label">Lainnya</div>
+          <a href="#" class="sidebar-item logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>`;
+      }
+      document.getElementById('logoutBtn')?.addEventListener('click', (e) => { e.preventDefault(); showToast('Logout berhasil','info'); setTimeout(() => Auth.logout(), 1000); });
+    }
+
+    document.getElementById('toggleSidebar').addEventListener('click', () => {
+      const sb = document.getElementById('sidebar');
+      const mc = document.querySelector('.main-content');
+      const overlay = document.getElementById('sidebarOverlay');
+      if (window.innerWidth > 991.98) {
+        sb.classList.toggle('active');
+        sb.classList.toggle('expanded');
+        mc.classList.toggle('shifted');
+      } else {
+        sb.classList.toggle('active');
+        overlay.classList.toggle('active');
+      }
+    });
+    document.getElementById('sidebarOverlay').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.remove('active');
+      document.getElementById('sidebarOverlay').classList.remove('active');
+    });
+
+    (function initSidebarHover() {
+      const sb = document.getElementById('sidebar');
+      const mc = document.querySelector('.main-content');
+      let sbTimer;
+      sb.addEventListener('mouseenter', () => {
+        clearTimeout(sbTimer);
+        if (window.innerWidth > 991.98) {
+          sb.classList.add('expanded');
+          mc.classList.add('shifted');
+        }
+      });
+      sb.addEventListener('mouseleave', () => {
+        if (window.innerWidth > 991.98 && !sb.classList.contains('active')) {
+          sbTimer = setTimeout(() => {
+            sb.classList.remove('expanded');
+            mc.classList.remove('shifted');
+          }, 300);
+        }
+      });
+    })();
+
+    document.getElementById('darkModeToggle').addEventListener('click', () => {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      if (isDark) { document.documentElement.removeAttribute('data-theme'); localStorage.setItem('theme','light'); }
+      else { document.documentElement.setAttribute('data-theme','dark'); localStorage.setItem('theme','dark'); }
+    });
+    if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme','dark');
+
+    if (currentUser) {
+      document.getElementById('userName').textContent = currentUser.nama;
+      document.getElementById('userAvatar').textContent = currentUser.nama.charAt(0);
+      document.getElementById('userRole').textContent = isAdmin ? 'Administrator' : 'Peserta Magang';
+    }
+
+    // Column visibility
+    if (!isAdmin) {
+      document.getElementById('colNama').classList.add('d-none');
+      document.getElementById('colDivisi').classList.add('d-none');
+      document.getElementById('filterDivisiAktivitas').classList.add('d-none');
+    } else {
+      document.getElementById('filterDivisiAktivitas').classList.remove('d-none');
+      const divisi = DB.get('divisi');
+      const sel = document.getElementById('filterDivisiAktivitas');
+      divisi.forEach(d => { sel.innerHTML += '<option value="'+d.id+'">'+d.nama+'</option>'; });
+    }
+
+    // Render aktivitas
+    function renderAktivitas() {
+      const search = document.getElementById('searchAktivitas')?.value || '';
+      const status = document.getElementById('filterStatusAktivitas')?.value || '';
+      const divisiId = document.getElementById('filterDivisiAktivitas')?.value || '';
+
+      let list;
+      if (isAdmin) {
+        list = AktivitasManager.getAll(search, status, divisiId);
+      } else {
+        list = AktivitasManager.getByUser(currentUser.id, search, status);
+      }
+
+      const tbody = document.getElementById('aktivitasBody');
+      if (!list.length) { tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Belum ada jurnal</td></tr>'; return; }
+      tbody.innerHTML = list.map(a => {
+        const sc = a.status === 'disetujui' ? 'badge-success' : a.status === 'ditolak' ? 'badge-danger' : 'badge-warning';
+        return `<tr>
+          <td>${a.tanggal}</td>
+          <td>${isAdmin ? DB.getNamaUser(a.userId) : ''}</td>
+          <td>${a.judul}</td>
+          <td>${isAdmin ? DB.getNamaDivisi(a.divisiId) : ''}</td>
+          <td><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:6px;background:var(--bg-secondary);border-radius:3px;max-width:100px"><div style="width:${a.progress}%;height:100%;background:var(--primary);border-radius:3px"></div></div>${a.progress}%</div></td>
+          <td><span class="badge ${sc}">${a.status}</span></td>
+          <td>
+            <div class="table-actions">
+              <button class="btn btn-sm btn-outline" onclick="detailAktivitas(${a.id})"><i class="fas fa-eye"></i></button>
+              ${a.status === 'menunggu' && !isAdmin ? '<button class="btn btn-sm btn-outline" onclick="editAktivitas('+a.id+')"><i class="fas fa-edit"></i></button>' : ''}
+              ${isAdmin && a.status === 'menunggu' ? '<button class="btn btn-sm btn-success" onclick="openApproval('+a.id+')"><i class="fas fa-check"></i></button>' : ''}
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    document.getElementById('searchAktivitas')?.addEventListener('input', renderAktivitas);
+    document.getElementById('filterStatusAktivitas')?.addEventListener('change', renderAktivitas);
+    document.getElementById('filterDivisiAktivitas')?.addEventListener('change', renderAktivitas);
+
+    // Form Aktivitas
+    function openFormAktivitas(data) {
+      if (!isAdmin && !data) {
+        const today = new Date().toISOString().split('T')[0];
+        const absen = DB.getAbsensiByUser(currentUser.id).filter(a => a.tanggal === today);
+        if (!absen.length) { showToast('Silakan melakukan absensi masuk terlebih dahulu.', 'warning'); return; }
+      }
+
+      editingAktivitasId = data?.id || null;
+      const isEdit = !!editingAktivitasId;
+      document.getElementById('modalAktivitasTitle').textContent = isEdit ? 'Edit Jurnal' : 'Tambah Jurnal';
+
+      const now = new Date();
+      document.getElementById('fAktTanggal').value = data?.tanggal || now.toISOString().split('T')[0];
+      document.getElementById('fAktJam').value = data?.jam || now.toTimeString().slice(0, 5);
+
+      const divisiSelect = document.getElementById('fAktDivisi');
+      const divisi = DB.get('divisi');
+      const userDivisiId = currentUser?.divisiId || (data?.divisiId || divisi[0]?.id);
+      divisiSelect.innerHTML = divisi.map(d => '<option value="'+d.id+'" '+(d.id == (data?.divisiId || userDivisiId) ? 'selected' : '')+'>'+d.nama+'</option>').join('');
+
+      document.getElementById('fAktJudul').value = data?.judul || '';
+      document.getElementById('fAktDesk').value = data?.deskripsi || '';
+      document.getElementById('fAktProgress').value = data?.progress || 0;
+      document.getElementById('fAktKendala').value = data?.kendala || '';
+      document.getElementById('fAktSolusi').value = data?.solusi || '';
+
+      openModal('modalAktivitas');
+    }
+
+    document.getElementById('formAktivitas').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const data = {
+        tanggal: document.getElementById('fAktTanggal').value,
+        jam: document.getElementById('fAktJam').value,
+        divisiId: parseInt(document.getElementById('fAktDivisi').value),
+        judul: document.getElementById('fAktJudul').value.trim(),
+        deskripsi: document.getElementById('fAktDesk').value.trim(),
+        progress: parseInt(document.getElementById('fAktProgress').value) || 0,
+        kendala: document.getElementById('fAktKendala').value.trim(),
+        solusi: document.getElementById('fAktSolusi').value.trim(),
+        foto: ''
+      };
+
+      if (!data.judul || !data.deskripsi) { showToast('Judul dan deskripsi wajib diisi', 'error'); return; }
+
+      if (editingAktivitasId) {
+        const result = AktivitasManager.update(editingAktivitasId, data);
+        if (!result.success) { showToast(result.message, 'error'); return; }
+        showToast('Jurnal berhasil diperbarui', 'success');
+      } else {
+        const result = AktivitasManager.add(currentUser.id, data);
+        if (!result.success) { showToast(result.message, 'error'); return; }
+        showToast('Jurnal berhasil ditambahkan', 'success');
+      }
+      closeModal('modalAktivitas');
+      renderAktivitas();
+    });
+
+    function editAktivitas(id) {
+      const a = DB.getById('aktivitas', id);
+      if (a) openFormAktivitas(a);
+    }
+
+    // Detail Aktivitas
+    function detailAktivitas(id) {
+      const a = DB.getById('aktivitas', id);
+      if (!a) return;
+      const sc = a.status === 'disetujui' ? 'badge-success' : a.status === 'ditolak' ? 'badge-danger' : 'badge-warning';
+      document.getElementById('detailAktivitasBody').innerHTML = `
+        <div class="d-flex align-center gap-3 mb-4">
+          <div style="width:56px;height:56px;border-radius:12px;background:var(--primary-bg);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.3rem"><i class="fas fa-tasks"></i></div>
+          <div><h3 style="font-size:1.1rem;color:var(--dark)">${a.judul}</h3><p class="text-muted">${a.tanggal} | ${a.jam}</p></div>
+        </div>
+        <div class="row row-2 mb-3">
+          <div><small class="text-muted">Nama</small><p><strong>${DB.getNamaUser(a.userId)}</strong></p></div>
+          <div><small class="text-muted">Divisi</small><p><strong>${DB.getNamaDivisi(a.divisiId)}</strong></p></div>
+          <div><small class="text-muted">Pembimbing</small><p><strong>${DB.getNamaPembimbing(DB.getById('users',a.userId)?.pembimbingId)}</strong></p></div>
+          <div><small class="text-muted">Progress</small><p><strong>${a.progress}%</strong></p></div>
+        </div>
+        <div class="mb-3"><small class="text-muted">Deskripsi</small><p>${a.deskripsi}</p></div>
+        ${a.kendala ? '<div class="mb-3"><small class="text-muted">Kendala</small><p>'+a.kendala+'</p></div>' : ''}
+        ${a.solusi ? '<div class="mb-3"><small class="text-muted">Solusi</small><p>'+a.solusi+'</p></div>' : ''}
+        <div class="mb-3"><small class="text-muted">Status</small><div><span class="badge ${sc}" style="font-size:0.85rem">${a.status}</span></div></div>
+        ${a.catatanAdmin ? '<div class="alert alert-info"><i class="fas fa-comment"></i> Catatan Admin: '+a.catatanAdmin+'</div>' : ''}
+        <button class="btn btn-outline" style="width:100%;justify-content:center" onclick="closeModal('modalDetailAktivitas')"><i class="fas fa-times"></i> Tutup</button>
+      `;
+      openModal('modalDetailAktivitas');
+    }
+
+    // Approval
+    function openApproval(id) {
+      approvalAktivitasId = id;
+      document.getElementById('fApprovalCatatan').value = '';
+      openModal('modalApproval');
+    }
+
+    document.getElementById('btnApprovalApprove')?.addEventListener('click', function(e) {
+      e.preventDefault();
+      const catatan = document.getElementById('fApprovalCatatan').value.trim();
+      AktivitasManager.approve(approvalAktivitasId, catatan);
+      closeModal('modalApproval');
+      showToast('Jurnal disetujui', 'success');
+      renderAktivitas();
+    });
+
+    document.getElementById('btnApprovalReject')?.addEventListener('click', function() {
+      const catatan = document.getElementById('fApprovalCatatan').value.trim();
+      if (!catatan) { showToast('Berikan catatan untuk jurnal yang ditolak', 'warning'); return; }
+      AktivitasManager.reject(approvalAktivitasId, catatan);
+      closeModal('modalApproval');
+      showToast('Jurnal ditolak', 'info');
+      renderAktivitas();
+    });
+
+    function openModal(id) { document.getElementById(id).classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+    window.addEventListener('click', (e) => { if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('active'); });
+
+    // Hide tambah button for admin
+    if (isAdmin) document.getElementById('btnTambahContainer').classList.add('d-none');
+
+    buildSidebar();
+    renderAktivitas();
+  </script>
+</body>
+</html>

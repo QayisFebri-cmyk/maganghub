@@ -1,0 +1,397 @@
+/* ===== KALENDER ===== */
+.kalender-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.kalender-grid .day-name {
+  font-size: 0.72rem;
+  color: var(--text-light);
+  font-weight: 600;
+  padding: 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.kalender-grid .day {
+  padding: 8px;
+  border-radius: var(--radius-xs);
+  font-size: 0.8rem;
+  border: 1px solid var(--border);
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+  background: rgba(17, 24, 39, 0.3);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.kalender-grid .day::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 0%, rgba(0, 217, 255, 0.1) 100%);
+  opacity: 0;
+  transition: opacity var(--transition);
+  pointer-events: none;
+}
+
+.kalender-grid .day:hover {
+  border-color: var(--primary);
+  box-shadow: 0 0 15px rgba(0, 217, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.kalender-grid .day:hover::before {
+  opacity: 1;
+}
+
+.kalender-grid .day.today {
+  border-color: var(--primary);
+  font-weight: 600;
+  background: rgba(0, 217, 255, 0.15);
+  box-shadow: 0 0 20px rgba(0, 217, 255, 0.2);
+}
+
+.kalender-grid .day.hadir {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10B981;
+  border-color: rgba(16, 185, 129, 0.3);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+}
+
+.kalender-grid .day.terlambat {
+  background: rgba(245, 158, 11, 0.2);
+  color: #F59E0B;
+  border-color: rgba(245, 158, 11, 0.3);
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
+}
+
+.kalender-grid .day.izin {
+  background: rgba(6, 182, 212, 0.2);
+  color: #06B6D4;
+  border-color: rgba(6, 182, 212, 0.3);
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.2);
+}
+
+.kalender-grid .day.sakit {
+  background: rgba(245, 158, 11, 0.2);
+  color: #F59E0B;
+  border-color: rgba(245, 158, 11, 0.3);
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
+}
+
+.kalender-grid .day.alpha {
+  background: rgba(239, 68, 68, 0.2);
+  color: #EF4444;
+  border-color: rgba(239, 68, 68, 0.3);
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+}
+
+.kalender-grid .day.libur {
+  background: rgba(107, 114, 128, 0.1);
+  color: var(--text-lighter);
+  border-color: transparent;
+  opacity: 0.6;
+}
+
+.legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  padding: 16px;
+  background: rgba(17, 24, 39, 0.3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  backdrop-filter: blur(10px);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--text-light);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 4px;
+  box-shadow: 0 0 10px rgba(0, 217, 255, 0.2);
+}
+
+/* ===== ABSENSI CHECK-IN/OUT ===== */
+.absensi-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.absensi-action-card {
+  background: rgba(17, 24, 39, 0.4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  text-align: center;
+  transition: all var(--transition);
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.absensi-action-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 0%, rgba(0, 217, 255, 0.05) 100%);
+  opacity: 0;
+  transition: opacity var(--transition);
+  pointer-events: none;
+}
+
+.absensi-action-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--primary);
+  box-shadow: var(--shadow-lg), 0 0 20px rgba(0, 217, 255, 0.2);
+  background: rgba(17, 24, 39, 0.6);
+}
+
+.absensi-action-card:hover::before {
+  opacity: 1;
+}
+
+.absensi-action-card i {
+  font-size: 2rem;
+  color: var(--primary);
+  margin-bottom: 8px;
+  display: block;
+  text-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
+}
+
+.absensi-action-card h3 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--dark);
+  margin-bottom: 4px;
+}
+
+.absensi-action-card p {
+  font-size: 0.8rem;
+  color: var(--text-light);
+}
+
+/* ===== TIME DISPLAY ===== */
+.time-display {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.time-display-card {
+  background: rgba(17, 24, 39, 0.4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  transition: all var(--transition);
+}
+
+.time-display-card:hover {
+  border-color: var(--primary);
+  box-shadow: 0 0 20px rgba(0, 217, 255, 0.2);
+}
+
+.time-display-card .label {
+  font-size: 0.8rem;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.time-display-card .time {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary);
+  font-family: 'Monaco', 'Courier New', monospace;
+  text-shadow: 0 0 10px rgba(0, 217, 255, 0.3);
+}
+
+/* ===== STATUS BADGE FUTURISTIC ===== */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  backdrop-filter: blur(10px);
+  border: 1px solid;
+  box-shadow: 0 0 15px rgba(0, 217, 255, 0.2);
+}
+
+.status-badge.hadir {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10B981;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.status-badge.terlambat {
+  background: rgba(245, 158, 11, 0.15);
+  color: #F59E0B;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.status-badge.izin {
+  background: rgba(6, 182, 212, 0.15);
+  color: #06B6D4;
+  border-color: rgba(6, 182, 212, 0.3);
+}
+
+.status-badge.sakit {
+  background: rgba(245, 158, 11, 0.15);
+  color: #F59E0B;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.status-badge.alpha {
+  background: rgba(239, 68, 68, 0.15);
+  color: #EF4444;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.status-badge.libur {
+  background: rgba(107, 114, 128, 0.1);
+  color: var(--text-lighter);
+  border-color: rgba(107, 114, 128, 0.2);
+}
+
+/* ===== HISTORY LIST ===== */
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.history-item {
+  background: rgba(17, 24, 39, 0.3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all var(--transition);
+  backdrop-filter: blur(10px);
+}
+
+.history-item:hover {
+  background: rgba(17, 24, 39, 0.5);
+  border-color: var(--primary);
+  box-shadow: 0 0 20px rgba(0, 217, 255, 0.1);
+}
+
+.history-item-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.history-item-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  background: rgba(0, 217, 255, 0.1);
+  color: var(--primary);
+  box-shadow: 0 0 15px rgba(0, 217, 255, 0.2);
+}
+
+.history-item-content h4 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--dark);
+  margin-bottom: 2px;
+}
+
+.history-item-content p {
+  font-size: 0.75rem;
+  color: var(--text-light);
+}
+
+.history-item-status {
+  text-align: right;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .kalender-grid {
+    gap: 2px;
+  }
+
+  .kalender-grid .day {
+    min-height: 36px;
+    font-size: 0.75rem;
+  }
+
+  .absensi-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .time-display {
+    grid-template-columns: 1fr;
+  }
+
+  .legend {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .kalender-grid {
+    gap: 1px;
+  }
+
+  .kalender-grid .day {
+    min-height: 32px;
+    font-size: 0.7rem;
+    padding: 4px;
+  }
+
+  .kalender-grid .day-name {
+    font-size: 0.65rem;
+    padding: 6px 0;
+  }
+
+  .history-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .history-item-status {
+    text-align: left;
+    width: 100%;
+  }
+}

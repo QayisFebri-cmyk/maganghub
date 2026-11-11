@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Absensi - MagangHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <link rel="stylesheet" href="../css/absensi.css">
+</head>
+<body>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <nav class="navbar-custom">
+    <div class="navbar-left">
+      <button class="nav-toggle" id="toggleSidebar" aria-label="Toggle sidebar"><i class="fas fa-bars"></i></button>
+      <div class="navbar-brand"><i class="fas fa-briefcase"></i><span>MagangHub</span></div>
+      <h3 style="color:#fff;font-size:0.95rem;font-weight:500;opacity:0.85">Absensi</h3>
+    </div>
+    <div class="navbar-right">
+      <button class="nav-btn" id="darkModeToggle" aria-label="Toggle dark mode"><i class="fas fa-moon"></i></button>
+      <div class="header-user">
+        <div class="avatar" id="userAvatar">U</div>
+        <div class="user-info"><div class="name" id="userName">User</div><div class="role" id="userRole">-</div></div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand"><i class="fas fa-briefcase"></i><h2>MagangHub</h2></div>
+      <nav class="sidebar-menu" id="sidebarMenu">
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <div class="page-content">
+        <div class="page-header">
+          <div><h1>Absensi</h1><p class="subtitle">Manajemen kehadiran magang</p></div>
+        </div>
+
+        <div class="toolbar">
+          <div class="filter-group">
+            <div class="filter-item">
+              <label><i class="fas fa-calendar"></i> Bulan</label>
+              <select id="filterBulan"><option value="">Semua Bulan</option>
+                <option value="01">Januari</option><option value="02">Februari</option><option value="03">Maret</option><option value="04">April</option><option value="05">Mei</option><option value="06">Juni</option>
+                <option value="07">Juli</option><option value="08">Agustus</option><option value="09">September</option><option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label><i class="fas fa-calendar-alt"></i> Tahun</label>
+              <select id="filterTahun"><option value="">Semua Tahun</option><option value="2026">2026</option></select>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline" style="align-self:flex-end" onclick="resetFilterAbsensi()"><i class="fas fa-undo"></i> Reset</button>
+          </div>
+        </div>
+
+        <!-- User Check In/Out -->
+        <div id="userAbsensiPanel">
+          <div class="absensi-container">
+            <div class="check-card" id="checkCard">
+              <div class="time" id="clockDisplay">--:--:--</div>
+              <div class="date" id="dateDisplay">-</div>
+              <div id="statusDisplay" class="status-badge status-belum">Belum Absen</div>
+              <div class="work-hours"><i class="fas fa-clock"></i> Jam Kerja: Masuk 08:00 &middot; Pulang 17:00</div>
+              <div id="checkActions" class="check-actions">
+                <button class="btn btn-success btn-lg" id="btnCheckIn"><i class="fas fa-sign-in-alt"></i> Check In</button>
+                <button class="btn btn-primary btn-lg" id="btnCheckOut"><i class="fas fa-sign-out-alt"></i> Check Out</button>
+              </div>
+              <div id="checkInfo" class="d-none" style="margin-top:16px">
+                <p class="text-muted" id="checkInfoText"></p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Admin table -->
+        <div id="adminAbsensiPanel" class="d-none">
+          <div class="toolbar">
+            <div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchAbsensi" placeholder="Cari nama..."></div>
+            <button class="btn btn-sm btn-outline" onclick="renderAbsensiAdmin()"><i class="fas fa-sync-alt"></i> Refresh</button>
+          </div>
+          <div class="tabel-card">
+            <h3>Riwayat Absensi</h3>
+            <div class="table-wrapper"><table><thead><tr><th>Tanggal</th><th>Nama</th><th>Jam Masuk</th><th>Jam Pulang</th><th>Durasi</th><th>Status</th><th>Lokasi</th><th>Keterangan</th><th>Aksi</th></tr></thead><tbody id="absensiAdminBody"></tbody></table></div>
+          </div>
+        </div>
+
+        <!-- User Riwayat -->
+        <div id="userRiwayatPanel">
+          <div class="tabel-card">
+            <h3>Riwayat Absensi Saya</h3>
+            <div class="table-wrapper"><table><thead><tr><th>Tanggal</th><th>Jam Masuk</th><th>Jam Pulang</th><th>Durasi</th><th>Status</th><th>Lokasi</th><th>Keterangan</th></tr></thead><tbody id="absensiUserBody"></tbody></table></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal Check In -->
+  <div class="modal-overlay" id="modalCheckIn">
+    <div class="modal-content">
+      <div class="modal-header"><h2>Check In</h2><button class="modal-close" onclick="closeModal('modalCheckIn')"><i class="fas fa-times"></i></button></div>
+      <div class="location-options">
+        <div class="location-option active" id="locOptionYes" onclick="selectLocationOption(true)">
+          <i class="fas fa-map-marker-alt"></i>
+          <span>Dengan Lokasi</span>
+          <small>Deteksi otomatis koordinat</small>
+        </div>
+        <div class="location-option" id="locOptionNo" onclick="selectLocationOption(false)">
+          <i class="fas fa-map-pin"></i>
+          <span>Tanpa Lokasi</span>
+          <small>Absen tanpa koordinat</small>
+        </div>
+      </div>
+      <form id="formCheckIn">
+        <div class="form-group"><label>Tanggal</label><input type="text" id="ciTanggal" readonly></div>
+        <div class="form-group"><label>Jam Masuk</label><input type="text" id="ciJam" readonly></div>
+        <div id="ciLocationGroup">
+          <div class="form-group"><label>Lokasi</label><input type="text" id="ciLokasi" placeholder="Kantor Pusat" value="Kantor Pusat"></div>
+          <div class="location-info" id="ciLocationInfo">
+            <i class="fas fa-satellite-dish"></i>
+            <span>Koordinat: </span><span class="coord" id="ciCoord">-</span>
+            <button type="button" class="btn-locate" id="btnDetectLoc" onclick="detectLocation()"><i class="fas fa-crosshairs"></i> Deteksi</button>
+          </div>
+        </div>
+        <div class="form-group"><label>Keterangan</label><textarea id="ciKeterangan" rows="2" placeholder="Opsional"></textarea></div>
+        <button type="submit" class="btn btn-success" style="width:100%;justify-content:center"><i class="fas fa-sign-in-alt"></i> Check In</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Check Out -->
+  <div class="modal-overlay" id="modalCheckOut">
+    <div class="modal-content">
+      <div class="modal-header"><h2>Check Out</h2><button class="modal-close" onclick="closeModal('modalCheckOut')"><i class="fas fa-times"></i></button></div>
+      <form id="formCheckOut">
+        <div class="form-group"><label>Tanggal</label><input type="text" id="coTanggal" readonly></div>
+        <div class="form-group"><label>Jam Pulang</label><input type="text" id="coJam" readonly></div>
+        <div class="form-group"><label>Ringkasan Jurnal</label><textarea id="coRingkasan" rows="2" placeholder="Apa yang dikerjakan hari ini?"></textarea></div>
+        <div class="form-group"><label>Kendala</label><textarea id="coKendala" rows="2" placeholder="Kendala yang dihadapi"></textarea></div>
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center"><i class="fas fa-sign-out-alt"></i> Check Out</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Edit Status (Admin) -->
+  <div class="modal-overlay" id="modalEditStatus">
+    <div class="modal-content">
+      <div class="modal-header"><h2>Edit Status Absensi</h2><button class="modal-close" onclick="closeModal('modalEditStatus')"><i class="fas fa-times"></i></button></div>
+      <form id="formEditStatus">
+        <div class="form-group"><label>Status</label>
+          <select id="esStatus">
+            <option value="hadir">Hadir</option><option value="terlambat">Terlambat</option>
+            <option value="izin">Izin</option><option value="sakit">Sakit</option><option value="alpha">Alpha</option><option value="libur">Libur</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Keterangan</label><textarea id="esKeterangan" rows="2"></textarea></div>
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center"><i class="fas fa-save"></i> Simpan</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="../data/dummy-data.js"></script>
+  <script src="../js/storage.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/chart.js"></script>
+  <script src="../js/dashboard.js"></script>
+  <script src="../js/absensi.js"></script>
+  <script src="../js/aktivitas.js"></script>
+  <script src="../js/admin.js"></script>
+  <script>
+    DB.init();
+    const session = Auth.requireAuth();
+    if (session.role === 'pembimbing') window.location.href = '../dashboard/pembimbing.html';
+    const currentUser = Auth.getCurrentUser();
+    const isAdmin = session.role === 'admin';
+    let editingAbsensiId = null;
+    let useLocation = true;
+    let detectedLat = null;
+    let detectedLng = null;
+
+    function showToast(msg, type) {
+      const c = document.getElementById('toast-container');
+      const t = document.createElement('div');
+      t.className = 'toast toast-' + type;
+      t.innerHTML = '<i class="fas ' + (type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle') + '"></i> ' + msg;
+      c.appendChild(t);
+      setTimeout(() => { t.classList.add('toast-remove'); setTimeout(() => t.remove(), 300); }, 3000);
+    }
+
+    // Sidebar
+    function buildSidebar() {
+      const menu = document.getElementById('sidebarMenu');
+      if (isAdmin) {
+        menu.innerHTML = `
+          <div class="sidebar-label">Menu Utama</div>
+          <a href="../dashboard/admin.html" class="sidebar-item"><i class="fas fa-th-large"></i> <span>Dashboard</span></a>
+          <a href="../dashboard/admin.html?page=magang" class="sidebar-item"><i class="fas fa-users"></i> <span>Peserta Magang</span></a>
+          <a href="../dashboard/admin.html?page=divisi" class="sidebar-item"><i class="fas fa-building"></i> <span>Divisi</span></a>
+          <a href="../dashboard/admin.html?page=pembimbing" class="sidebar-item"><i class="fas fa-chalkboard-teacher"></i> <span>Pembimbing</span></a>
+          <a href="absensi.html" class="sidebar-item active"><i class="fas fa-calendar-check"></i> <span>Absensi</span></a>
+          <a href="aktivitas.html" class="sidebar-item"><i class="fas fa-tasks"></i> <span>Jurnal Harian</span></a>
+          <a href="laporan-bulanan.html" class="sidebar-item"><i class="fas fa-file-upload"></i> <span>Laporan Bulanan</span></a>
+          <a href="laporan.html" class="sidebar-item"><i class="fas fa-file-alt"></i> <span>Laporan</span></a>
+          <div class="sidebar-label">Lainnya</div>
+          <a href="profil.html" class="sidebar-item"><i class="fas fa-user-cog"></i> <span>Pengaturan</span></a>
+          <a href="#" class="sidebar-item logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>`;
+      } else {
+        menu.innerHTML = `
+          <div class="sidebar-label">Menu</div>
+          <a href="../dashboard/user.html" class="sidebar-item"><i class="fas fa-th-large"></i> <span>Dashboard</span></a>
+          <a href="absensi.html" class="sidebar-item active"><i class="fas fa-calendar-check"></i> <span>Absensi</span></a>
+          <a href="aktivitas.html" class="sidebar-item"><i class="fas fa-tasks"></i> <span>Jurnal Harian</span></a>
+          <a href="laporan-bulanan.html" class="sidebar-item"><i class="fas fa-file-upload"></i> <span>Laporan Bulanan</span></a>
+          <a href="profil.html" class="sidebar-item"><i class="fas fa-user"></i> <span>Profil</span></a>
+          <div class="sidebar-label">Lainnya</div>
+          <a href="#" class="sidebar-item logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>`;
+      }
+      document.getElementById('logoutBtn')?.addEventListener('click', (e) => { e.preventDefault(); showToast('Logout berhasil','info'); setTimeout(() => Auth.logout(), 1000); });
+    }
+
+    // ===== LOCATION =====
+    function selectLocationOption(withLoc) {
+      useLocation = withLoc;
+      document.getElementById('locOptionYes').classList.toggle('active', withLoc);
+      document.getElementById('locOptionNo').classList.toggle('active', !withLoc);
+      const locGroup = document.getElementById('ciLocationGroup');
+      if (withLoc) {
+        locGroup.style.display = 'block';
+        detectLocation();
+      } else {
+        locGroup.style.display = 'none';
+        detectedLat = null;
+        detectedLng = null;
+      }
+    }
+
+    function detectLocation() {
+      const btn = document.getElementById('btnDetectLoc');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mendeteksi...';
+      if (!navigator.geolocation) {
+        document.getElementById('ciCoord').textContent = 'Geolokasi tidak didukung browser';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-crosshairs"></i> Deteksi';
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          detectedLat = pos.coords.latitude;
+          detectedLng = pos.coords.longitude;
+          document.getElementById('ciCoord').textContent = `${detectedLat.toFixed(6)}, ${detectedLng.toFixed(6)}`;
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-check"></i> Terdeteksi';
+          btn.style.background = '#10B981';
+        },
+        (err) => {
+          document.getElementById('ciCoord').textContent = 'Gagal: ' + err.message;
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-crosshairs"></i> Coba Lagi';
+          btn.style.background = '';
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+      );
+    }
+
+    document.getElementById('toggleSidebar').addEventListener('click', () => {
+      const sb = document.getElementById('sidebar');
+      const mc = document.querySelector('.main-content');
+      const overlay = document.getElementById('sidebarOverlay');
+      if (window.innerWidth > 991.98) {
+        sb.classList.toggle('active');
+        sb.classList.toggle('expanded');
+        mc.classList.toggle('shifted');
+      } else {
+        sb.classList.toggle('active');
+        overlay.classList.toggle('active');
+      }
+    });
+    document.getElementById('sidebarOverlay').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.remove('active');
+      document.getElementById('sidebarOverlay').classList.remove('active');
+    });
+
+    // ===== SIDEBAR HOVER PUSH =====
+    (function initSidebarHover() {
+      const sb = document.getElementById('sidebar');
+      const mc = document.querySelector('.main-content');
+      let sbTimer;
+      sb.addEventListener('mouseenter', () => {
+        clearTimeout(sbTimer);
+        if (window.innerWidth > 991.98) {
+          sb.classList.add('expanded');
+          mc.classList.add('shifted');
+        }
+      });
+      sb.addEventListener('mouseleave', () => {
+        if (window.innerWidth > 991.98 && !sb.classList.contains('active')) {
+          sbTimer = setTimeout(() => {
+            sb.classList.remove('expanded');
+            mc.classList.remove('shifted');
+          }, 300);
+        }
+      });
+    })();
+
+    // Dark mode
+    document.getElementById('darkModeToggle').addEventListener('click', () => {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      if (isDark) { document.documentElement.removeAttribute('data-theme'); localStorage.setItem('theme','light'); }
+      else { document.documentElement.setAttribute('data-theme','dark'); localStorage.setItem('theme','dark'); }
+    });
+    if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme','dark');
+
+    // User info
+    if (currentUser) {
+      document.getElementById('userName').textContent = currentUser.nama;
+      document.getElementById('userAvatar').textContent = currentUser.nama.charAt(0);
+      document.getElementById('userRole').textContent = isAdmin ? 'Administrator' : 'Peserta Magang';
+    }
+
+    // ===== CLOCK =====
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clockDisplay').textContent = now.toLocaleTimeString('id-ID');
+      document.getElementById('dateDisplay').textContent = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // ===== CHECK IN/OUT =====
+    function updateCheckStatus() {
+      if (isAdmin) return;
+      const today = new Date().toISOString().split('T')[0];
+      const absen = DB.getAbsensiByUser(currentUser.id).filter(a => a.tanggal === today);
+      const statusEl = document.getElementById('statusDisplay');
+      const actions = document.getElementById('checkActions');
+      const info = document.getElementById('checkInfo');
+
+      if (absen.length) {
+        const a = absen[0];
+        const sc = AbsensiManager.getStatusColor(a.status);
+        const sl = AbsensiManager.getStatusLabel(a.status);
+        statusEl.className = 'status-badge status-' + a.status;
+        statusEl.textContent = sl;
+
+        if (a.jamPulang !== '-') {
+          actions.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle"></i> Hari ini sudah selesai. Jam pulang: ' + a.jamPulang + ' | Durasi: ' + a.durasi + '</div>';
+        } else {
+          document.getElementById('btnCheckOut').style.display = 'inline-flex';
+          document.getElementById('btnCheckIn').style.display = 'none';
+        }
+      } else {
+        statusEl.className = 'status-badge status-belum';
+        statusEl.textContent = 'Belum Absen';
+        document.getElementById('btnCheckIn').style.display = 'inline-flex';
+        document.getElementById('btnCheckOut').style.display = 'none';
+      }
+    }
+
+    document.getElementById('btnCheckIn')?.addEventListener('click', () => {
+      if (isAdmin) return;
+      if (!AbsensiManager.canCheckIn(currentUser.id)) { showToast('Sudah Check In hari ini', 'warning'); return; }
+      const now = new Date();
+      document.getElementById('ciTanggal').value = now.toISOString().split('T')[0];
+      document.getElementById('ciJam').value = now.toTimeString().slice(0, 5);
+      useLocation = true;
+      detectedLat = null;
+      detectedLng = null;
+      document.getElementById('locOptionYes').classList.add('active');
+      document.getElementById('locOptionNo').classList.remove('active');
+      document.getElementById('ciLocationGroup').style.display = 'block';
+      document.getElementById('ciCoord').textContent = '-';
+      const detectBtn = document.getElementById('btnDetectLoc');
+      detectBtn.disabled = false;
+      detectBtn.innerHTML = '<i class="fas fa-crosshairs"></i> Deteksi';
+      detectBtn.style.background = '';
+      document.getElementById('ciLokasi').value = 'Kantor Pusat';
+      openModal('modalCheckIn');
+      setTimeout(detectLocation, 300);
+    });
+
+    document.getElementById('formCheckIn')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const data = {
+        lokasi: document.getElementById('ciLokasi').value.trim(),
+        keterangan: document.getElementById('ciKeterangan').value.trim(),
+        latitude: useLocation ? detectedLat : null,
+        longitude: useLocation ? detectedLng : null
+      };
+      const result = AbsensiManager.checkIn(currentUser.id, data);
+      closeModal('modalCheckIn');
+      showToast('Check In berhasil! Status: ' + (result.status === 'terlambat' ? 'Terlambat' : 'Hadir'), result.status === 'terlambat' ? 'warning' : 'success');
+      updateCheckStatus();
+    });
+
+    document.getElementById('btnCheckOut')?.addEventListener('click', () => {
+      if (isAdmin) return;
+      const now = new Date();
+      if (now.getHours() < 17) { showToast('Belum waktunya pulang, minimal jam 17:00', 'warning'); return; }
+      const today = new Date().toISOString().split('T')[0];
+      const aktivitasToday = DB.getAktivitasByUser(currentUser.id).filter(a => a.tanggal === today);
+      if (!aktivitasToday.length) { showToast('Isi minimal satu jurnal sebelum Check Out', 'warning'); return; }
+
+      document.getElementById('coTanggal').value = today;
+      document.getElementById('coJam').value = now.toTimeString().slice(0, 5);
+      openModal('modalCheckOut');
+    });
+
+    document.getElementById('formCheckOut')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const result = AbsensiManager.checkOut(currentUser.id, {
+        ringkasan: document.getElementById('coRingkasan').value.trim(),
+        kendala: document.getElementById('coKendala').value.trim()
+      });
+      if (!result.success) { showToast(result.message, 'error'); closeModal('modalCheckOut'); return; }
+      closeModal('modalCheckOut');
+      showToast('Check Out berhasil! Durasi: ' + result.durasi, 'success');
+      updateCheckStatus();
+    });
+
+    // ===== RENDER RIWAYAT =====
+    function renderRiwayatUser() {
+      const bulan = document.getElementById('filterBulan').value;
+      const tahun = document.getElementById('filterTahun').value;
+      const list = AbsensiManager.getRiwayat(currentUser.id, bulan, tahun);
+      const tbody = document.getElementById('absensiUserBody');
+      if (!list.length) { tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Belum ada riwayat</td></tr>'; return; }
+      tbody.innerHTML = list.map(a => {
+        const sc = AbsensiManager.getStatusColor(a.status);
+        const hasLoc = a.latitude && a.longitude;
+        return `<tr>
+          <td>${a.tanggal}</td><td>${a.jamMasuk}</td><td>${a.jamPulang}</td><td>${a.durasi}</td>
+          <td><span class="badge" style="background:${sc}22;color:${sc}">${AbsensiManager.getStatusLabel(a.status)}</span></td>
+          <td><span class="location-badge ${hasLoc ? 'with-loc' : 'no-loc'}"><i class="fas ${hasLoc ? 'fa-map-marker-alt' : 'fa-ban'}"></i> ${hasLoc ? 'Ada' : 'Tidak'}</span></td>
+          <td>${a.keterangan}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    function renderAbsensiAdmin() {
+      const keyword = document.getElementById('searchAbsensi')?.value?.toLowerCase() || '';
+      const bulan = document.getElementById('filterBulan').value;
+      const tahun = document.getElementById('filterTahun').value;
+      let list = AbsensiManager.getAllRiwayat(bulan, tahun);
+      if (keyword) list = list.filter(a => DB.getNamaUser(a.userId).toLowerCase().includes(keyword));
+      const tbody = document.getElementById('absensiAdminBody');
+      if (!list.length) { tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted">Belum ada data</td></tr>'; return; }
+      tbody.innerHTML = list.map(a => {
+        const sc = AbsensiManager.getStatusColor(a.status);
+        const hasLoc = a.latitude && a.longitude;
+        return `<tr>
+          <td>${a.tanggal}</td><td>${DB.getNamaUser(a.userId)}</td>
+          <td>${a.jamMasuk}</td><td>${a.jamPulang}</td><td>${a.durasi}</td>
+          <td><span class="badge" style="background:${sc}22;color:${sc}">${AbsensiManager.getStatusLabel(a.status)}</span></td>
+          <td><span class="location-badge ${hasLoc ? 'with-loc' : 'no-loc'}"><i class="fas ${hasLoc ? 'fa-map-marker-alt' : 'fa-ban'}"></i> ${hasLoc ? 'Ada' : 'Tidak'}</span></td>
+          <td>${a.keterangan}</td>
+          <td><button class="btn btn-sm btn-outline" onclick="editStatusAbsensi(${a.id})"><i class="fas fa-edit"></i></button></td>
+        </tr>`;
+      }).join('');
+    }
+
+    function editStatusAbsensi(id) {
+      editingAbsensiId = id;
+      const a = DB.getById('absensi', id);
+      if (!a) return;
+      document.getElementById('esStatus').value = a.status;
+      document.getElementById('esKeterangan').value = a.keterangan;
+      openModal('modalEditStatus');
+    }
+
+    document.getElementById('formEditStatus')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      DB.update('absensi', editingAbsensiId, {
+        status: document.getElementById('esStatus').value,
+        keterangan: document.getElementById('esKeterangan').value.trim()
+      });
+      closeModal('modalEditStatus');
+      showToast('Status berhasil diperbarui', 'success');
+      renderAbsensiAdmin();
+    });
+
+    document.getElementById('filterBulan')?.addEventListener('change', () => {
+      if (isAdmin) renderAbsensiAdmin();
+      else renderRiwayatUser();
+    });
+    document.getElementById('filterTahun')?.addEventListener('change', () => {
+      if (isAdmin) renderAbsensiAdmin();
+      else renderRiwayatUser();
+    });
+    document.getElementById('searchAbsensi')?.addEventListener('input', renderAbsensiAdmin);
+
+    function resetFilterAbsensi() {
+      document.getElementById('filterBulan').value = '';
+      document.getElementById('filterTahun').value = '';
+      if (isAdmin) renderAbsensiAdmin();
+      else renderRiwayatUser();
+    }
+
+    function openModal(id) { document.getElementById(id).classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+    window.addEventListener('click', (e) => { if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('active'); });
+
+    // ===== INIT =====
+    buildSidebar();
+    if (isAdmin) {
+      document.getElementById('userAbsensiPanel').classList.add('d-none');
+      document.getElementById('userRiwayatPanel').classList.add('d-none');
+      document.getElementById('adminAbsensiPanel').classList.remove('d-none');
+      renderAbsensiAdmin();
+    } else {
+      document.getElementById('adminAbsensiPanel').classList.add('d-none');
+      updateCheckStatus();
+      renderRiwayatUser();
+    }
+  </script>
+</body>
+</html>

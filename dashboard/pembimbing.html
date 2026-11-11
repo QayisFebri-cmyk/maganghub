@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Pembimbing - MagangHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- ===== NAVBAR ===== -->
+  <nav class="navbar-custom">
+    <div class="navbar-left">
+      <button class="nav-toggle" id="toggleSidebar" aria-label="Toggle sidebar">
+        <i class="fas fa-bars"></i>
+      </button>
+      <div class="navbar-brand">
+        <i class="fas fa-briefcase"></i>
+        <span>MagangHub</span>
+      </div>
+      <h3 id="pageTitle" style="color:#fff;font-size:0.95rem;font-weight:500;margin-left:8px;opacity:0.85">Dashboard Pembimbing</h3>
+    </div>
+    <div class="navbar-right">
+      <button class="nav-btn" id="darkModeToggle" aria-label="Toggle dark mode">
+        <i class="fas fa-moon"></i>
+      </button>
+      <div class="header-user">
+        <div class="avatar" id="userAvatar">P</div>
+        <div class="user-info">
+          <div class="name" id="userName">Pembimbing</div>
+          <div class="role">Pembimbing Magang</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ===== APP LAYOUT ===== -->
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <i class="fas fa-briefcase"></i>
+        <h2>MagangHub</h2>
+      </div>
+      <nav class="sidebar-menu">
+        <div class="sidebar-label">Menu Utama</div>
+        <a href="#" class="sidebar-item active" data-page="dashboard"><i class="fas fa-th-large"></i> <span>Dashboard</span></a>
+        <a href="#" class="sidebar-item" data-page="siswa"><i class="fas fa-users"></i> <span>Siswa Bimbingan</span></a>
+        <a href="#" class="sidebar-item" data-page="jurnal"><i class="fas fa-tasks"></i> <span>Jurnal Harian</span></a>
+        <a href="#" class="sidebar-item" data-page="absensi"><i class="fas fa-calendar-check"></i> <span>Absensi Siswa</span></a>
+        <a href="#" class="sidebar-item" data-page="laporan"><i class="fas fa-file-upload"></i> <span>Laporan Bulanan</span></a>
+
+        <div class="sidebar-divider"></div>
+
+        <div class="sidebar-label">Lainnya</div>
+        <a href="#" class="sidebar-item" data-page="profil"><i class="fas fa-user-cog"></i> <span>Pengaturan</span></a>
+        <a href="#" class="sidebar-item logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>
+      </nav>
+    </aside>
+
+    <main class="main-content" id="mainContent">
+      <div class="page-content" id="pageContent">
+
+        <!-- Dashboard View -->
+        <div id="view-dashboard">
+          <div class="page-header">
+            <div>
+              <h1>Dashboard Pembimbing</h1>
+              <p class="subtitle" id="welcomeSubtext">Pantau jurnal dan laporan siswa bimbingan Anda</p>
+            </div>
+            <div>
+              <button class="btn btn-sm btn-outline" onclick="refreshData()"><i class="fas fa-sync-alt"></i> Refresh</button>
+            </div>
+          </div>
+
+          <div class="stats-grid col-6" id="statsGrid">
+            <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-users"></i></div><div class="stat-info"><span class="number" id="pbSiswa">0</span><span class="label">Siswa Bimbingan</span></div></div>
+            <div class="stat-card"><div class="stat-icon purple"><i class="fas fa-tasks"></i></div><div class="stat-info"><span class="number" id="pbJurnalHariIni">0</span><span class="label">Jurnal Hari Ini</span></div></div>
+            <div class="stat-card"><div class="stat-icon orange"><i class="fas fa-clock"></i></div><div class="stat-info"><span class="number" id="pbJurnalMenunggu">0</span><span class="label">Menunggu Approval</span></div></div>
+            <div class="stat-card"><div class="stat-icon green"><i class="fas fa-file-upload"></i></div><div class="stat-info"><span class="number" id="pbLaporan">0</span><span class="label">Laporan Bulanan</span></div></div>
+            <div class="stat-card"><div class="stat-icon green"><i class="fas fa-user-check"></i></div><div class="stat-info"><span class="number" id="pbHadir">0</span><span class="label">Hadir Hari Ini</span></div></div>
+            <div class="stat-card"><div class="stat-icon orange"><i class="fas fa-user-clock"></i></div><div class="stat-info"><span class="number" id="pbTerlambat">0</span><span class="label">Terlambat Hari Ini</span></div></div>
+          </div>
+
+          <div class="chart-grid col-2">
+            <div class="chart-card"><h3><i class="fas fa-chart-bar"></i> Jurnal per Bulan</h3><canvas id="chartPbJurnal"></canvas></div>
+            <div class="chart-card"><h3><i class="fas fa-chart-line"></i> Kehadiran per Bulan</h3><canvas id="chartPbAbsensi"></canvas></div>
+          </div>
+
+          <div class="tabel-card">
+            <h3><i class="fas fa-history"></i> Jurnal Terbaru</h3>
+            <div class="table-wrapper"><table><thead><tr><th>Tanggal</th><th>Nama</th><th>Jurnal</th><th>Divisi</th><th>Progress</th><th>Status</th></tr></thead><tbody id="jurnalTerbaruBody"></tbody></table></div>
+          </div>
+        </div>
+
+        <!-- Siswa View -->
+        <div id="view-siswa" class="d-none">
+          <div class="page-header">
+            <div><h1>Siswa Bimbingan</h1><p class="subtitle">Daftar siswa yang Anda bimbing</p></div>
+          </div>
+          <div class="table-wrapper"><table><thead><tr><th>Nama</th><th>NIM/NIS</th><th>Universitas</th><th>Divisi</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="siswaBody"></tbody></table></div>
+        </div>
+
+        <!-- Jurnal View -->
+        <div id="view-jurnal" class="d-none">
+          <div class="page-header">
+            <div><h1>Jurnal Harian Siswa</h1><p class="subtitle">Pantau jurnal harian siswa bimbingan</p></div>
+          </div>
+          <div class="toolbar">
+            <div class="search-box"><i class="fas fa-search"></i><input type="text" id="jbSearch" placeholder="Cari jurnal / nama siswa..."></div>
+            <div class="filter-group">
+              <select id="jbFilterSiswa"><option value="">Semua Siswa</option></select>
+              <select id="jbFilterStatus">
+                <option value="">Semua Status</option>
+                <option value="menunggu">Menunggu</option>
+                <option value="disetujui">Disetujui</option>
+                <option value="ditolak">Ditolak</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrapper"><table><thead><tr><th>Tanggal</th><th>Nama</th><th>Judul</th><th>Divisi</th><th>Progress</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="jurnalBody"></tbody></table></div>
+        </div>
+
+        <!-- Absensi View -->
+        <div id="view-absensi" class="d-none">
+          <div class="page-header">
+            <div><h1>Absensi Siswa</h1><p class="subtitle">Pantau kehadiran siswa bimbingan</p></div>
+          </div>
+          <div class="toolbar">
+            <div class="search-box"><i class="fas fa-search"></i><input type="text" id="abSearch" placeholder="Cari nama siswa..."></div>
+            <div class="filter-group">
+              <div class="filter-item">
+                <label><i class="fas fa-user-graduate"></i> Siswa</label>
+                <select id="abFilterSiswa"><option value="">Semua Siswa</option></select>
+              </div>
+              <div class="filter-item">
+                <label><i class="fas fa-flag"></i> Status</label>
+                <select id="abFilterStatus">
+                  <option value="">Semua Status</option>
+                  <option value="hadir">Hadir</option><option value="terlambat">Terlambat</option>
+                  <option value="izin">Izin</option><option value="sakit">Sakit</option>
+                  <option value="alpha">Alpha</option><option value="libur">Libur</option>
+                </select>
+              </div>
+              <div class="filter-item">
+                <label><i class="fas fa-calendar"></i> Bulan</label>
+                <select id="abBulan"><option value="">Semua Bulan</option>
+                  <option value="01">Januari</option><option value="02">Februari</option><option value="03">Maret</option><option value="04">April</option><option value="05">Mei</option><option value="06">Juni</option>
+                  <option value="07">Juli</option><option value="08">Agustus</option><option value="09">September</option><option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
+                </select>
+              </div>
+              <div class="filter-item">
+                <label><i class="fas fa-calendar-alt"></i> Tahun</label>
+                <select id="abTahun"><option value="">Semua Tahun</option><option value="2026">2026</option></select>
+              </div>
+              <button type="button" class="btn btn-sm btn-outline" style="align-self:flex-end" onclick="resetFilterAbsensiPb()"><i class="fas fa-undo"></i> Reset</button>
+            </div>
+          </div>
+          <div class="table-wrapper"><table><thead><tr><th>Tanggal</th><th>Nama</th><th>Jam Masuk</th><th>Jam Pulang</th><th>Durasi</th><th>Status</th></tr></thead><tbody id="absensiBody"></tbody></table></div>
+        </div>
+
+        <!-- Laporan View -->
+        <div id="view-laporan" class="d-none">
+          <div class="page-header">
+            <div><h1>Laporan Bulanan Siswa</h1><p class="subtitle">Unduh laporan bulanan siswa bimbingan</p></div>
+          </div>
+          <div class="table-wrapper"><table><thead><tr><th>Bulan</th><th>Nama</th><th>Judul</th><th>File</th><th>Diunggah</th><th>Aksi</th></tr></thead><tbody id="laporanBody"></tbody></table></div>
+        </div>
+
+        <!-- Profil View -->
+        <div id="view-profil" class="d-none">
+          <div class="page-header">
+            <div><h1>Pengaturan Akun</h1><p class="subtitle">Kelola profil dan password</p></div>
+          </div>
+          <div class="row row-2">
+            <div class="card">
+              <h3 class="mb-4"><i class="fas fa-user"></i> Profil Pembimbing</h3>
+              <div id="profilDisplay"></div>
+            </div>
+            <div class="card">
+              <h3 class="mb-4"><i class="fas fa-lock"></i> Ganti Password</h3>
+              <form id="formGantiPassword">
+                <div class="form-group"><label>Password Lama</label><input type="password" id="gpOld" required></div>
+                <div class="form-group"><label>Password Baru</label><input type="password" id="gpNew" required></div>
+                <div class="form-group"><label>Konfirmasi</label><input type="password" id="gpConfirm" required></div>
+                <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center"><i class="fas fa-key"></i> Ganti Password</button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal Detail Jurnal -->
+  <div class="modal-overlay" id="modalDetailJurnal">
+    <div class="modal-content">
+      <div class="modal-header"><h2>Detail Jurnal</h2><button class="modal-close" onclick="closeModal('modalDetailJurnal')"><i class="fas fa-times"></i></button></div>
+      <div id="detailJurnalBody"></div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="../data/dummy-data.js"></script>
+  <script src="../js/storage.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/chart.js"></script>
+  <script src="../js/dashboard.js"></script>
+  <script src="../js/absensi.js"></script>
+  <script src="../js/aktivitas.js"></script>
+  <script src="../js/user.js"></script>
+  <script src="../js/animations.js"></script>
+  <script>
+    DB.init();
+    const session = Auth.requireRole('pembimbing');
+    const currentUser = Auth.getCurrentUser();
+    const pembimbingId = currentUser.pembimbingId;
+    const pembimbingProfile = DB.getById('pembimbing', pembimbingId) || {};
+
+    function showToast(msg, type) {
+      const c = document.getElementById('toast-container');
+      const t = document.createElement('div');
+      t.className = 'toast toast-' + type;
+      t.innerHTML = '<i class="fas ' + (type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle') + '"></i> ' + msg;
+      c.appendChild(t);
+      setTimeout(() => { t.classList.add('toast-remove'); setTimeout(() => t.remove(), 300); }, 3000);
+    }
+
+    // ===== HELPERS =====
+    function supervisedUsers() {
+      return DB.get('users').filter(u => u.role === 'user' && u.pembimbingId === pembimbingId);
+    }
+    function supervisedIds() { return supervisedUsers().map(u => u.id); }
+    function supervisedAktivitas() { const ids = supervisedIds(); return DB.get('aktivitas').filter(a => ids.includes(a.userId)); }
+    function supervisedAbsensi() { const ids = supervisedIds(); return DB.get('absensi').filter(a => ids.includes(a.userId)); }
+    function supervisedLaporan() { const ids = supervisedIds(); return DB.get('laporan').filter(l => ids.includes(l.userId)); }
+
+    const NAMA_BULAN = { '01':'Januari','02':'Februari','03':'Maret','04':'April','05':'Mei','06':'Juni','07':'Juli','08':'Agustus','09':'September','10':'Oktober','11':'November','12':'Desember' };
+
+    // ===== SIDEBAR =====
+    document.getElementById('toggleSidebar').addEventListener('click', () => {
+      const sb = document.getElementById('sidebar');
+      const mc = document.getElementById('mainContent');
+      if (window.innerWidth > 991.98) {
+        sb.classList.toggle('active');
+        sb.classList.toggle('expanded');
+        mc.classList.toggle('shifted');
+      } else {
+        sb.classList.toggle('active');
+        document.getElementById('sidebarOverlay').classList.toggle('active');
+      }
+    });
+    document.getElementById('sidebarOverlay').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.remove('active');
+      document.getElementById('sidebarOverlay').classList.remove('active');
+    });
+
+    (function initSidebarHover() {
+      const sb = document.getElementById('sidebar');
+      const mc = document.getElementById('mainContent');
+      let sbTimer;
+      sb.addEventListener('mouseenter', () => {
+        clearTimeout(sbTimer);
+        if (window.innerWidth > 991.98) {
+          sb.classList.add('expanded');
+          mc.classList.add('shifted');
+        }
+      });
+      sb.addEventListener('mouseleave', () => {
+        if (window.innerWidth > 991.98 && !sb.classList.contains('active')) {
+          sbTimer = setTimeout(() => {
+            sb.classList.remove('expanded');
+            mc.classList.remove('shifted');
+          }, 300);
+        }
+      });
+    })();
+
+    document.querySelectorAll('.sidebar-item[data-page]').forEach(item => {
+      item.addEventListener('click', function(e) {
+        e.preventDefault();
+        const page = this.dataset.page;
+        document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+        document.querySelectorAll('.page-content > div[id^="view-"]').forEach(v => v.classList.add('d-none'));
+        const view = document.getElementById('view-' + page);
+        if (view) {
+          view.classList.remove('d-none');
+          document.getElementById('pageTitle').textContent = this.textContent.trim();
+          if (page === 'dashboard') renderDashboard();
+          else if (page === 'siswa') renderSiswa();
+          else if (page === 'jurnal') renderJurnal();
+          else if (page === 'absensi') renderAbsensiPb();
+          else if (page === 'laporan') renderLaporan();
+          else if (page === 'profil') renderProfil();
+        }
+        if (window.innerWidth <= 768) {
+          document.getElementById('sidebar').classList.remove('active');
+          document.getElementById('sidebarOverlay').classList.remove('active');
+        }
+      });
+    });
+
+    document.getElementById('darkModeToggle').addEventListener('click', () => {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      if (isDark) { document.documentElement.removeAttribute('data-theme'); localStorage.setItem('theme','light'); }
+      else { document.documentElement.setAttribute('data-theme','dark'); localStorage.setItem('theme','dark'); }
+      updateCharts();
+    });
+    if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme','dark');
+
+    document.getElementById('logoutBtn').addEventListener('click', (e) => {
+      e.preventDefault();
+      showToast('Logout berhasil', 'info');
+      setTimeout(() => Auth.logout(), 1000);
+    });
+
+    if (currentUser) {
+      document.getElementById('userName').textContent = currentUser.nama;
+      document.getElementById('userAvatar').textContent = currentUser.nama.charAt(0);
+    }
+
+    // ===== DASHBOARD =====
+    function renderDashboard() {
+      const siswa = supervisedUsers();
+      const aktivitas = supervisedAktivitas();
+      const absensi = supervisedAbsensi();
+      const laporan = supervisedLaporan();
+      const today = new Date().toISOString().split('T')[0];
+      const todayAbs = absensi.filter(a => a.tanggal === today);
+
+      document.getElementById('pbSiswa').textContent = siswa.length;
+      document.getElementById('pbJurnalHariIni').textContent = aktivitas.filter(a => a.tanggal === today).length;
+      document.getElementById('pbJurnalMenunggu').textContent = aktivitas.filter(a => a.status === 'menunggu').length;
+      document.getElementById('pbLaporan').textContent = laporan.length;
+      document.getElementById('pbHadir').textContent = todayAbs.filter(a => a.status === 'hadir').length;
+      document.getElementById('pbTerlambat').textContent = todayAbs.filter(a => a.status === 'terlambat').length;
+
+      const recent = aktivitas.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 10);
+      const tbody = document.getElementById('jurnalTerbaruBody');
+      if (!recent.length) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Belum ada jurnal</td></tr>'; }
+      else {
+        tbody.innerHTML = recent.map(a => {
+          const sc = a.status === 'disetujui' ? 'badge-success' : a.status === 'ditolak' ? 'badge-danger' : 'badge-warning';
+          return `<tr>
+            <td>${a.tanggal}</td><td>${DB.getNamaUser(a.userId)}</td>
+            <td>${a.judul}</td><td>${DB.getNamaDivisi(a.divisiId)}</td>
+            <td>${a.progress}%</td>
+            <td><span class="badge ${sc}">${a.status}</span></td>
+          </tr>`;
+        }).join('');
+      }
+      updateCharts();
+    }
+
+    function updateCharts() {
+      const aktivitas = supervisedAktivitas();
+      const absensi = supervisedAbsensi();
+      const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+      const jData = new Array(12).fill(0);
+      aktivitas.forEach(a => { const m = new Date(a.tanggal).getMonth(); jData[m]++; });
+      ChartManager.bar('chartPbJurnal', months, jData, 'Jurnal', '#2F3BFF');
+
+      const hData = new Array(12).fill(0);
+      const tData = new Array(12).fill(0);
+      absensi.forEach(a => {
+        const m = new Date(a.tanggal).getMonth();
+        if (a.status === 'hadir') hData[m]++;
+        else if (a.status === 'terlambat') tData[m]++;
+      });
+      ChartManager.line('chartPbAbsensi', months, [
+        { label: 'Hadir', data: hData, borderColor: '#28A745', backgroundColor: 'rgba(40,167,69,0.1)', fill: true },
+        { label: 'Terlambat', data: tData, borderColor: '#F59E0B', backgroundColor: 'rgba(245,158,11,0.1)', fill: true }
+      ]);
+    }
+
+    function refreshData() { renderDashboard(); showToast('Data berhasil diperbarui', 'success'); }
+
+    // ===== SISWA =====
+    function renderSiswa() {
+      const list = supervisedUsers();
+      const tbody = document.getElementById('siswaBody');
+      if (!list.length) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Belum ada siswa bimbingan</td></tr>'; return; }
+      tbody.innerHTML = list.map(u => `
+        <tr>
+          <td><strong>${u.nama}</strong></td>
+          <td>${u.nim || '-'}</td>
+          <td>${u.universitas || '-'}</td>
+          <td>${DB.getNamaDivisi(u.divisiId)}</td>
+          <td><span class="badge badge-success">Aktif</span></td>
+          <td>
+            <div class="table-actions">
+              <button class="btn btn-sm btn-outline" onclick="lihatJurnalSiswa(${u.id})"><i class="fas fa-book-open"></i> Jurnal</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function lihatJurnalSiswa(userId) {
+      const sel = document.getElementById('jbFilterSiswa');
+      if (sel.options.length <= 1) {
+        supervisedUsers().forEach(u => { sel.innerHTML += '<option value="'+u.id+'">'+u.nama+'</option>'; });
+      }
+      sel.value = userId;
+      const nav = document.querySelector('.sidebar-item[data-page="jurnal"]');
+      if (nav) nav.click();
+    }
+
+    // ===== JURNAL =====
+    function renderJurnal() {
+      const siswaSelect = document.getElementById('jbFilterSiswa');
+      if (siswaSelect.options.length <= 1) {
+        supervisedUsers().forEach(u => { siswaSelect.innerHTML += '<option value="'+u.id+'">'+u.nama+'</option>'; });
+      }
+      const search = document.getElementById('jbSearch').value.toLowerCase();
+      const siswaId = document.getElementById('jbFilterSiswa').value;
+      const status = document.getElementById('jbFilterStatus').value;
+      let list = supervisedAktivitas().sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+      if (search) list = list.filter(a => a.judul.toLowerCase().includes(search) || DB.getNamaUser(a.userId).toLowerCase().includes(search));
+      if (siswaId) list = list.filter(a => a.userId == siswaId);
+      if (status) list = list.filter(a => a.status === status);
+      const tbody = document.getElementById('jurnalBody');
+      if (!list.length) { tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Belum ada jurnal</td></tr>'; return; }
+      tbody.innerHTML = list.map(a => {
+        const sc = a.status === 'disetujui' ? 'badge-success' : a.status === 'ditolak' ? 'badge-danger' : 'badge-warning';
+        return `<tr>
+          <td>${a.tanggal}</td><td>${DB.getNamaUser(a.userId)}</td>
+          <td>${a.judul}</td><td>${DB.getNamaDivisi(a.divisiId)}</td>
+          <td><div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:5px;background:var(--bg);border-radius:3px;max-width:80px"><div style="width:${a.progress}%;height:100%;background:var(--primary);border-radius:3px"></div></div>${a.progress}%</div></td>
+          <td><span class="badge ${sc}">${a.status}</span></td>
+          <td>
+            <div class="table-actions">
+              <button class="btn btn-sm btn-outline" onclick="detailJurnal(${a.id})"><i class="fas fa-eye"></i></button>
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    function detailJurnal(id) {
+      const a = DB.getById('aktivitas', id);
+      if (!a) return;
+      const sc = a.status === 'disetujui' ? 'badge-success' : a.status === 'ditolak' ? 'badge-danger' : 'badge-warning';
+      const user = DB.getById('users', a.userId);
+      document.getElementById('detailJurnalBody').innerHTML = `
+        <div class="d-flex align-center gap-3 mb-4">
+          <div style="width:56px;height:56px;border-radius:12px;background:var(--primary-bg);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.3rem"><i class="fas fa-tasks"></i></div>
+          <div><h3 style="font-size:1.1rem;color:var(--dark)">${a.judul}</h3><p class="text-muted">${a.tanggal} | ${a.jam}</p></div>
+        </div>
+        <div class="row row-2 mb-3">
+          <div><small class="text-muted">Nama</small><p><strong>${DB.getNamaUser(a.userId)}</strong></p></div>
+          <div><small class="text-muted">Divisi</small><p><strong>${DB.getNamaDivisi(a.divisiId)}</strong></p></div>
+          <div><small class="text-muted">Pembimbing</small><p><strong>${DB.getNamaPembimbing(user?.pembimbingId)}</strong></p></div>
+          <div><small class="text-muted">Progress</small><p><strong>${a.progress}%</strong></p></div>
+        </div>
+        <div class="mb-3"><small class="text-muted">Deskripsi</small><p>${a.deskripsi}</p></div>
+        ${a.kendala ? '<div class="mb-3"><small class="text-muted">Kendala</small><p>'+a.kendala+'</p></div>' : ''}
+        ${a.solusi ? '<div class="mb-3"><small class="text-muted">Solusi</small><p>'+a.solusi+'</p></div>' : ''}
+        <div class="mb-3"><small class="text-muted">Status</small><div><span class="badge ${sc}" style="font-size:0.85rem">${a.status}</span></div></div>
+        ${a.catatanAdmin ? '<div class="alert alert-info"><i class="fas fa-comment"></i> Catatan: '+a.catatanAdmin+'</div>' : ''}
+        <button class="btn btn-outline" style="width:100%;justify-content:center" onclick="closeModal('modalDetailJurnal')"><i class="fas fa-times"></i> Tutup</button>`;
+      openModal('modalDetailJurnal');
+    }
+
+    document.getElementById('jbSearch')?.addEventListener('input', renderJurnal);
+    document.getElementById('jbFilterSiswa')?.addEventListener('change', renderJurnal);
+    document.getElementById('jbFilterStatus')?.addEventListener('change', renderJurnal);
+
+    // ===== ABSENSI =====
+    function renderAbsensiPb() {
+      const siswaSelect = document.getElementById('abFilterSiswa');
+      if (siswaSelect.options.length <= 1) {
+        supervisedUsers().forEach(u => { siswaSelect.innerHTML += '<option value="'+u.id+'">'+u.nama+'</option>'; });
+      }
+      const search = document.getElementById('abSearch').value.toLowerCase();
+      const siswaId = document.getElementById('abFilterSiswa').value;
+      const status = document.getElementById('abFilterStatus').value;
+      const bulan = document.getElementById('abBulan').value;
+      const tahun = document.getElementById('abTahun').value;
+      let list = supervisedAbsensi().sort((a,b) => b.tanggal.localeCompare(a.tanggal));
+      if (search) list = list.filter(a => DB.getNamaUser(a.userId).toLowerCase().includes(search));
+      if (siswaId) list = list.filter(a => a.userId == siswaId);
+      if (status) list = list.filter(a => a.status === status);
+      if (bulan) list = list.filter(a => a.tanggal.slice(5,7) === bulan);
+      if (tahun) list = list.filter(a => a.tanggal.slice(0,4) === tahun);
+      const tbody = document.getElementById('absensiBody');
+      if (!list.length) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Belum ada data absensi</td></tr>'; return; }
+      tbody.innerHTML = list.map(a => {
+        const sc = AbsensiManager.getStatusColor(a.status);
+        return `<tr>
+          <td>${a.tanggal}</td><td><strong>${DB.getNamaUser(a.userId)}</strong></td>
+          <td>${a.jamMasuk}</td><td>${a.jamPulang}</td><td>${a.durasi}</td>
+          <td><span class="badge" style="background:${sc}22;color:${sc}">${AbsensiManager.getStatusLabel(a.status)}</span></td>
+        </tr>`;
+      }).join('');
+    }
+
+    document.getElementById('abSearch')?.addEventListener('input', renderAbsensiPb);
+    document.getElementById('abFilterSiswa')?.addEventListener('change', renderAbsensiPb);
+    document.getElementById('abFilterStatus')?.addEventListener('change', renderAbsensiPb);
+    document.getElementById('abBulan')?.addEventListener('change', renderAbsensiPb);
+    document.getElementById('abTahun')?.addEventListener('change', renderAbsensiPb);
+
+    function resetFilterAbsensiPb() {
+      document.getElementById('abSearch').value = '';
+      document.getElementById('abFilterSiswa').value = '';
+      document.getElementById('abFilterStatus').value = '';
+      document.getElementById('abBulan').value = '';
+      document.getElementById('abTahun').value = '';
+      renderAbsensiPb();
+    }
+
+    // ===== LAPORAN =====
+    function renderLaporan() {
+      let list = supervisedLaporan().sort((a,b) => b.createdAt.localeCompare(a.createdAt));
+      const tbody = document.getElementById('laporanBody');
+      if (!list.length) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Belum ada laporan bulanan</td></tr>'; return; }
+      tbody.innerHTML = list.map(l => `
+        <tr>
+          <td>${NAMA_BULAN[l.bulan] || l.bulan} ${l.tahun}</td>
+          <td>${DB.getNamaUser(l.userId)}</td>
+          <td>${l.judul || '-'}</td>
+          <td>${l.fileName}</td>
+          <td>${new Date(l.createdAt).toLocaleDateString('id-ID')}</td>
+          <td><div class="table-actions"><a class="btn btn-sm btn-outline" href="${l.fileData}" download="${l.fileName}"><i class="fas fa-download"></i></a></div></td>
+        </tr>
+      `).join('');
+    }
+
+    // ===== PROFIL =====
+    function renderProfil() {
+      const u = currentUser;
+      const p = pembimbingProfile;
+      document.getElementById('profilDisplay').innerHTML = `
+        <div style="text-align:center;margin-bottom:16px">
+          <div style="width:72px;height:72px;border-radius:50%;background:var(--primary-bg);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:600;margin:0 auto 8px">${u.nama.charAt(0)}</div>
+          <h3 style="font-size:1.1rem;color:var(--dark)">${u.nama}</h3>
+          <p class="text-muted">Pembimbing Magang</p>
+        </div>
+        <div><small class="text-muted">Username</small><p><strong>${u.username}</strong></p></div>
+        <div class="mt-3"><small class="text-muted">NIP</small><p><strong>${p.nip || '-'}</strong></p></div>
+        <div class="mt-3"><small class="text-muted">Email</small><p><strong>${u.email || '-'}</strong></p></div>
+        <div class="mt-3"><small class="text-muted">Divisi</small><p><strong>${DB.getNamaDivisi(p.divisiId || u.divisiId)}</strong></p></div>`;
+    }
+
+    document.getElementById('formGantiPassword')?.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const old = document.getElementById('gpOld').value;
+      const np = document.getElementById('gpNew').value;
+      const cf = document.getElementById('gpConfirm').value;
+      if (!old || !np || !cf) { showToast('Semua field wajib diisi', 'error'); return; }
+      if (np.length < 6) { showToast('Password baru minimal 6 karakter', 'error'); return; }
+      if (np !== cf) { showToast('Konfirmasi password tidak cocok', 'error'); return; }
+      const result = UserManager.changePassword(currentUser.id, old, np);
+      if (!result.success) { showToast(result.message, 'error'); return; }
+      showToast('Password berhasil diganti', 'success');
+      e.target.reset();
+    });
+
+    function openModal(id) { document.getElementById(id)?.classList.add('active'); }
+    function closeModal(id) { document.getElementById(id)?.classList.remove('active'); }
+    window.addEventListener('click', (e) => { if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('active'); });
+
+    renderDashboard();
+  </script>
+</body>
+</html>
