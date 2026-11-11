@@ -135,27 +135,12 @@
 
 @media (max-width: 480px) {
   .sidebar {
-    width: 100%;
-    height: auto;
-    flex-direction: row;
-    padding: 0;
-    border-right: none;
-    border-bottom: 1px solid rgba(0, 217, 255, 0.1);
-    overflow-x: auto;
-  }
-
-  .brand {
-    display: none;
-  }
-
-  .menu {
-    display: flex;
-    flex-direction: row;
-    overflow-x: auto;
+    width: 56px;
   }
 
   .menuItem {
-    white-space: nowrap;
-    flex-shrink: 0;
+    padding: 10px 8px;
+    margin: 1px 2px;
+    justify-content: center;
   }
 }

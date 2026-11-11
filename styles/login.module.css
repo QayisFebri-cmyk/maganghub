@@ -156,6 +156,20 @@
   backdrop-filter: blur(10px);
 }
 
+.success {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #10B981;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  backdrop-filter: blur(10px);
+}
+
 .infoBox {
   margin-top: 18px;
   padding: 12px 16px;

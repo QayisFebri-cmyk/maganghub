@@ -1,149 +1,115 @@
-# MagangHub - Next.js + Supabase
+# MagangHub
 
-Sistem Informasi Manajemen Magang dengan Next.js, React, dan Supabase PostgreSQL.
+Sistem Informasi Manajemen Magang (pengganti aplikasi HTML lama) — dibangun dengan **Next.js 14 + TypeScript + Supabase (PostgreSQL)**.
 
-## Setup Instructions
+Tampilan memakai tema *Futuristic Dark*: latar navy gelap, aksen cyan, glassmorphism, dan animasi ringan (hanya hover lift).
 
-### 1. Setup Supabase
+---
 
-1. Buka https://supabase.com dan login ke akun kamu
-2. Buat project baru atau gunakan yang sudah ada
-3. Di SQL Editor, jalankan query ini untuk membuat tables:
+## 1. Setup Supabase (sekali saja)
 
-```sql
--- Create users table
-CREATE TABLE public.users (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  email VARCHAR(255) UNIQUE NOT NULL,
-  username VARCHAR(100) UNIQUE,
-  password VARCHAR(255),
-  role VARCHAR(50) DEFAULT 'user',
-  nama VARCHAR(255),
-  divisi_id INT,
-  pembimbing_id INT,
-  created_at TIMESTAMP DEFAULT NOW()
-);
+1. Buka <https://supabase.com> → login → **New project**
+2. Tunggu project selesai dibuat
+3. Buka **SQL Editor** → **New query**
+4. Copy **seluruh isi file [`setup.sql`](./setup.sql)** → paste → **Run**
+5. Buka **Settings → API**, copy:
+   - **Project URL**
+   - **anon public key**
 
--- Create divisi table
-CREATE TABLE public.divisi (
-  id SERIAL PRIMARY KEY,
-  nama VARCHAR(255) NOT NULL,
-  deskripsi TEXT,
-  created_at TIMESTAMP DEFAULT NOW()
-);
+## 2. Isi `.env.local`
 
--- Create pembimbing table
-CREATE TABLE public.pembimbing (
-  id SERIAL PRIMARY KEY,
-  nama VARCHAR(255) NOT NULL,
-  nip VARCHAR(100),
-  email VARCHAR(255),
-  divisi_id INT REFERENCES divisi(id),
-  created_at TIMESTAMP DEFAULT NOW()
-);
+Buat file `.env.local` di root project:
 
--- Create aktivitas table
-CREATE TABLE public.aktivitas (
-  id SERIAL PRIMARY KEY,
-  user_id UUID REFERENCES users(id),
-  tanggal DATE,
-  judul VARCHAR(255),
-  deskripsi TEXT,
-  divisi_id INT REFERENCES divisi(id),
-  progress INT DEFAULT 0,
-  status VARCHAR(50) DEFAULT 'menunggu',
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Create absensi table
-CREATE TABLE public.absensi (
-  id SERIAL PRIMARY KEY,
-  user_id UUID REFERENCES users(id),
-  tanggal DATE,
-  jam_masuk TIME,
-  jam_pulang TIME,
-  durasi VARCHAR(20),
-  status VARCHAR(50),
-  keterangan TEXT,
-  created_at TIMESTAMP DEFAULT NOW()
-);
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://xxxxxxxxxxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
-4. Copy **Project URL** dan **Anon Key** dari Settings > API
+> `.env.local` sudah masuk `.gitignore`, jadi tidak akan ter-push ke GitHub.
 
-### 2. Setup Project
+## 3. Jalankan
 
 ```bash
-# Clone atau download project
-cd magang
-
-# Install dependencies
 npm install
-
-# Buat .env.local dan isi dengan credentials Supabase
-# NEXT_PUBLIC_SUPABASE_URL=your_url
-# NEXT_PUBLIC_SUPABASE_ANON_KEY=your_key
-
-# Run development server
 npm run dev
-
-# Buka http://localhost:3000
 ```
 
-### 3. Login Credentials (Demo)
+Buka <http://localhost:3000> — otomatis redirect ke `/login`.
 
-Sebelum login, tambahkan user di Supabase:
-- Email: admin@maganghub.com
-- Password: admin123
+**Login demo:**
 
-Atau buat melalui aplikasi (signup feature bisa ditambahkan nanti)
+| Email | Password |
+| --- | --- |
+| `admin@maganghub.com` | `admin123` |
 
-## Project Structure
+Akun demo ini dibuat oleh `setup.sql`, jadi langsung bisa dipakai.
+
+---
+
+## Struktur Project
 
 ```
-magang/
-├── pages/              # Next.js pages
-│   ├── login.tsx
-│   ├── dashboard.tsx
-│   └── _app.tsx
-├── components/         # React components
+maganghub/
+├── pages/                  # Routing Next.js
+│   ├── _app.tsx            # Root app + import globals.css
+│   ├── login.tsx           # Halaman login  → /login
+│   └── dashboard.tsx       # Dashboard      → /dashboard
+├── components/
 │   ├── Navbar.tsx
 │   ├── Sidebar.tsx
 │   └── StatCard.tsx
-├── lib/               # Utilities
-│   └── supabase.ts
-├── styles/            # CSS Modules
-│   ├── globals.css
-│   ├── login.module.css
-│   ├── dashboard.module.css
-│   ├── navbar.module.css
-│   ├── sidebar.module.css
-│   └── statcard.module.css
-├── public/            # Static files
-├── package.json
+├── lib/
+│   └── supabase.ts         # Supabase client + auth helper
+├── styles/                 # CSS Modules + globals.css
+├── public/
+│   └── logo.webp
+├── legacy/                 # Aplikasi HTML lama (arsip, tidak dipakai)
+├── setup.sql               # Query database — paste ke Supabase SQL Editor
 ├── next.config.js
-└── .env.local
+├── tsconfig.json
+└── package.json
 ```
 
-## Features
+## Halaman
 
-✅ Authentication dengan Supabase
-✅ Dashboard dengan stats cards
-✅ Sidebar navigation
-✅ Responsive design
-✅ Futuristic dark UI
-✅ Simple animations
+| Route | Keterangan |
+| --- | --- |
+| `/` | Redirect ke `/login` |
+| `/login` | Form login + akun demo |
+| `/dashboard` | Statistik dari Supabase + navigasi sidebar |
 
-## Next Steps
+## Cara Login Bekerja
 
-1. Setup database tables di Supabase
-2. Copy URL dan Anon Key ke .env.local
-3. `npm install` dan `npm run dev`
-4. Buat akun atau gunakan demo credentials
+`lib/supabase.ts` mencoba **dua jalur**:
+
+1. **Supabase Auth** (`signInWithPassword`) — jalur utama untuk produksi
+2. **Tabel `public.users`** — fallback, supaya akun demo dari `setup.sql` langsung bisa dipakai
+
+Sesi disimpan di `localStorage` (key `maganghub_session`).
+
+> ⚠️ **Untuk produksi:** hapus fallback tabel dan pakai Supabase Auth sepenuhnya. Kolom `password` di tabel `users` masih plain text dan hanya untuk keperluan demo.
+
+## Statistik Dashboard
+
+Angka pada kartu statistik diambil langsung dari database:
+
+- **Peserta Magang** → `users` dengan `role = 'user'`
+- **Divisi** → jumlah baris `divisi`
+- **Pembimbing** → jumlah baris `pembimbing`
+- **Jurnal Hari Ini** → `aktivitas` dengan `tanggal = hari ini`
+- **Menunggu Approval** → `aktivitas` dengan `status = 'menunggu'`
+- **Disetujui** → `aktivitas` dengan `status = 'disetujui'`
+
+## Scripts
+
+```bash
+npm run dev     # development  → http://localhost:3000
+npm run build   # production build
+npm start       # jalankan hasil build
+```
 
 ## Tech Stack
 
-- **Frontend**: Next.js 14, React 18, TypeScript
-- **Database**: Supabase (PostgreSQL)
-- **Styling**: CSS Modules
-- **UI**: Emoji icons, glassmorphism design
+- Next.js 14 (Pages Router) + React 18 + TypeScript
+- Supabase (PostgreSQL) via `@supabase/supabase-js`
+- CSS Modules (tanpa framework CSS tambahan)

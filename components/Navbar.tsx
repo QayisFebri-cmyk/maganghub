@@ -9,7 +9,6 @@ export default function Navbar({ user, onLogout }: NavbarProps) {
   return (
     <nav className={styles.navbar}>
       <div className={styles.left}>
-        <button className={styles.toggleBtn}>☰</button>
         <div className={styles.brand}>
           <span className={styles.brandIcon}>💼</span>
           <span>MagangHub</span>

@@ -81,6 +81,12 @@
   line-height: 1.6;
 }
 
+.meta {
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: #6B7280;
+}
+
 .dashboardView {
   animation: fadeIn 0.3s ease;
 }
@@ -160,7 +166,7 @@
 
 @media (max-width: 480px) {
   .mainContent {
-    margin-left: 0;
+    margin-left: 56px;
   }
 
   .pageHeader h1 {
