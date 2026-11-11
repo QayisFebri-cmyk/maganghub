@@ -2,6 +2,7 @@ import { useEffect, type ReactNode } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { useAuth } from '@/lib/auth-context'
+import Reveal from '@/components/ui/Reveal'
 import Navbar from './Navbar'
 import Sidebar from './Sidebar'
 import layout from '@/styles/layout.module.css'
@@ -25,7 +26,7 @@ export default function AppShell({ title, children }: AppShellProps) {
     return (
       <>
         <Head>
-          <title>{title} — MagangHub</title>
+          <title>{`${title} — MagangHub`}</title>
         </Head>
         <div className={layout.loader}>
           <div className={layout.spinner} />
@@ -38,14 +39,16 @@ export default function AppShell({ title, children }: AppShellProps) {
   return (
     <>
       <Head>
-        <title>{title} — MagangHub</title>
+        <title>{`${title} — MagangHub`}</title>
       </Head>
 
       <div className={layout.shell}>
         <Navbar user={user} onLogout={logout} />
         <Sidebar role={user.role} />
-        <main className={layout.main}>
-          <div className={layout.content}>{children}</div>
+        <main className={layout.main} id="konten">
+          <div className={layout.content}>
+            <Reveal key={router.pathname}>{children}</Reveal>
+          </div>
         </main>
       </div>
     </>

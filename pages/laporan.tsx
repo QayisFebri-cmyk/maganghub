@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import AppShell from '@/components/layout/AppShell'
 import PageHeader from '@/components/ui/PageHeader'
 import DataTable, { type Column } from '@/components/ui/DataTable'
+import Reveal from '@/components/ui/Reveal'
 import { useAuth } from '@/lib/auth-context'
 import { absensiApi, divisiApi, jurnalApi, pesertaApi } from '@/lib/api'
 import { currentMonthRange, formatDate } from '@/lib/format'
@@ -314,7 +315,8 @@ export default function LaporanPage() {
           </div>
         </section>
 
-        <div className={page.summaryGrid}>
+        <Reveal delay={40}>
+          <div className={page.summaryGrid}>
           <div className={page.summaryItem}>
             <div className={page.summaryValue}>{summary.jurnal}</div>
             <div className={page.summaryLabel}>Total Jurnal</div>
@@ -341,24 +343,27 @@ export default function LaporanPage() {
             </div>
             <div className={page.summaryLabel}>Izin / Sakit</div>
           </div>
-        </div>
-
-        <section>
-          <div className={ui.cardHead} style={{ padding: '0 0 12px', border: 0 }}>
-            <h2 className={ui.cardTitle}>Rekap per Peserta</h2>
-            <span className={ui.hint}>{rekap.length} peserta</span>
           </div>
+        </Reveal>
 
-          <DataTable
-            columns={columns}
-            rows={rekap}
-            rowKey={(row) => row.id}
-            loading={loading}
-            emptyIcon="📄"
-            emptyTitle="Tidak ada data pada periode ini"
-            emptyDescription="Coba ubah rentang tanggal atau filter divisi."
-          />
-        </section>
+        <Reveal delay={90}>
+          <section>
+            <div className={ui.cardHead} style={{ padding: '0 0 12px', border: 0 }}>
+              <h2 className={ui.cardTitle}>Rekap per Peserta</h2>
+              <span className={ui.hint}>{rekap.length} peserta</span>
+            </div>
+
+            <DataTable
+              columns={columns}
+              rows={rekap}
+              rowKey={(row) => row.id}
+              loading={loading}
+              emptyIcon="📄"
+              emptyTitle="Tidak ada data pada periode ini"
+              emptyDescription="Coba ubah rentang tanggal atau filter divisi."
+            />
+          </section>
+        </Reveal>
       </div>
     </AppShell>
   )

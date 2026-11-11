@@ -254,3 +254,116 @@
     height: 60px;
   }
 }
+
+/* ============================================================
+   Premium micro-interactions — login
+   ============================================================ */
+
+.glow {
+  animation: mh-login-glow 9s ease-in-out infinite alternate;
+}
+
+@keyframes mh-login-glow {
+  0% {
+    opacity: 0.75;
+    transform: translateX(-50%) scale(1);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1.08);
+  }
+}
+
+.card {
+  transition: border-color 0.4s var(--ease-out),
+    box-shadow 0.4s var(--ease-out), transform 0.4s var(--ease-out);
+}
+
+.card:hover {
+  border-color: rgba(0, 217, 255, 0.5);
+  box-shadow: 0 24px 60px rgba(3, 8, 16, 0.6),
+    0 0 0 1px rgba(0, 217, 255, 0.16), 0 0 46px rgba(0, 217, 255, 0.12);
+}
+
+.logoImg {
+  transition: transform 0.4s var(--ease-out), filter 0.4s ease;
+}
+
+.logo:hover .logoImg {
+  transform: scale(1.05);
+  filter: drop-shadow(0 8px 24px rgba(0, 217, 255, 0.35));
+}
+
+.formGroup input {
+  transition: border-color var(--ease), box-shadow var(--ease),
+    background-color var(--ease);
+}
+
+.formGroup input:hover:not(:disabled) {
+  border-color: rgba(0, 217, 255, 0.28);
+}
+
+.btnLogin {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.btnLogin::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    115deg,
+    transparent 18%,
+    rgba(255, 255, 255, 0.28) 48%,
+    transparent 78%
+  );
+  transform: translateX(-130%);
+  transition: transform 0.7s var(--ease-out);
+  pointer-events: none;
+}
+
+.btnLogin:hover:not(:disabled)::before {
+  transform: translateX(130%);
+}
+
+.btnLogin:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.togglePass {
+  transition: opacity var(--ease), background-color var(--ease),
+    transform var(--ease);
+}
+
+.togglePass:active {
+  transform: scale(0.9);
+}
+
+.infoBox {
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.infoBox:hover {
+  border-color: rgba(0, 217, 255, 0.5);
+  background: rgba(0, 217, 255, 0.07);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glow {
+    animation: none;
+  }
+
+  .card:hover,
+  .logo:hover .logoImg,
+  .btnLogin:active:not(:disabled),
+  .togglePass:active {
+    transform: none;
+  }
+
+  .btnLogin::before {
+    display: none;
+  }
+}

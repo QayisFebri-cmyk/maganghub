@@ -235,3 +235,146 @@
     flex: 1 1 140px;
   }
 }
+
+/* ============================================================
+   Premium micro-interactions — page
+   ============================================================ */
+
+.title {
+  background: linear-gradient(120deg, #f4faff 0%, #a9ecff 55%, #38bdf8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--text);
+}
+
+.subtitle {
+  transition: color 0.3s ease;
+}
+
+/* Stagger ringan untuk kartu statistik saat halaman dibuka */
+@media (prefers-reduced-motion: no-preference) {
+  .statsGrid > * {
+    animation: mh-rise 0.45s var(--ease-out) both;
+  }
+
+  .statsGrid > *:nth-child(2) {
+    animation-delay: 0.05s;
+  }
+  .statsGrid > *:nth-child(3) {
+    animation-delay: 0.1s;
+  }
+  .statsGrid > *:nth-child(4) {
+    animation-delay: 0.15s;
+  }
+  .statsGrid > *:nth-child(5) {
+    animation-delay: 0.2s;
+  }
+  .statsGrid > *:nth-child(6) {
+    animation-delay: 0.25s;
+  }
+
+  .summaryGrid > * {
+    animation: mh-rise 0.45s var(--ease-out) both;
+  }
+
+  .summaryGrid > *:nth-child(2) {
+    animation-delay: 0.04s;
+  }
+  .summaryGrid > *:nth-child(3) {
+    animation-delay: 0.08s;
+  }
+  .summaryGrid > *:nth-child(4) {
+    animation-delay: 0.12s;
+  }
+  .summaryGrid > *:nth-child(5) {
+    animation-delay: 0.16s;
+  }
+  .summaryGrid > *:nth-child(6) {
+    animation-delay: 0.2s;
+  }
+}
+
+/* ---------------- Chart ---------------- */
+
+.barFill {
+  transform-origin: bottom;
+  animation: mh-bar-grow 0.6s var(--ease-out) both;
+  box-shadow: 0 0 14px rgba(0, 217, 255, 0.3);
+}
+
+.barCol:nth-child(2) .barFill {
+  animation-delay: 0.04s;
+}
+.barCol:nth-child(3) .barFill {
+  animation-delay: 0.08s;
+}
+.barCol:nth-child(4) .barFill {
+  animation-delay: 0.12s;
+}
+.barCol:nth-child(5) .barFill {
+  animation-delay: 0.16s;
+}
+.barCol:nth-child(6) .barFill {
+  animation-delay: 0.2s;
+}
+.barCol:nth-child(7) .barFill {
+  animation-delay: 0.24s;
+}
+
+.barTrack {
+  transition: background-color 0.3s ease;
+}
+
+.barCol:hover .barTrack {
+  background: rgba(0, 217, 255, 0.07);
+}
+
+/* ---------------- Ringkasan / meta ---------------- */
+
+.summaryItem {
+  transition: transform 0.3s var(--ease-out),
+    border-color 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+}
+
+.summaryItem:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-glow);
+}
+
+.metaRow {
+  transition: background-color 0.25s ease;
+}
+
+.metaRow:hover {
+  background: rgba(0, 217, 255, 0.035);
+}
+
+/* ---------------- Print ---------------- */
+
+@media print {
+  .title {
+    background: none;
+    -webkit-text-fill-color: #111;
+    color: #111;
+  }
+
+  .barFill,
+  .statsGrid > *,
+  .summaryGrid > * {
+    animation: none;
+  }
+}
+
+/* ---------------- Reduced motion ---------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .summaryItem:hover {
+    transform: none;
+  }
+
+  .barFill {
+    animation: none;
+  }
+}

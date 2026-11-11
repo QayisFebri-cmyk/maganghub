@@ -5,6 +5,7 @@ import PageHeader from '@/components/ui/PageHeader'
 import StatCard from '@/components/ui/StatCard'
 import DataTable, { type Column } from '@/components/ui/DataTable'
 import Badge from '@/components/ui/Badge'
+import Reveal from '@/components/ui/Reveal'
 import { useAuth } from '@/lib/auth-context'
 import { fetchDashboardStats, fetchWeeklyJurnal, jurnalApi } from '@/lib/api'
 import {
@@ -156,7 +157,8 @@ export default function DashboardPage() {
           />
         </div>
 
-        <div className={page.grid2}>
+        <Reveal delay={60}>
+          <div className={page.grid2}>
           <section className={ui.card}>
             <div className={ui.cardHead}>
               <h2 className={ui.cardTitle}>Jurnal 7 Hari Terakhir</h2>
@@ -213,10 +215,12 @@ export default function DashboardPage() {
               </div>
             </div>
           </section>
-        </div>
+          </div>
+        </Reveal>
 
-        <section>
-          <div className={ui.cardHead} style={{ padding: '0 0 12px', border: 0 }}>
+        <Reveal delay={120}>
+          <section>
+            <div className={ui.cardHead} style={{ padding: '0 0 12px', border: 0 }}>
             <h2 className={ui.cardTitle}>Jurnal Terbaru</h2>
             <Link href="/jurnal" className={ui.hint}>
               Lihat semua →
@@ -232,7 +236,8 @@ export default function DashboardPage() {
             emptyDescription="Jurnal yang dibuat akan tampil di sini."
             skeletonRows={3}
           />
-        </section>
+          </section>
+        </Reveal>
       </div>
     </AppShell>
   )

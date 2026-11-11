@@ -60,7 +60,7 @@ export default function LoginPage() {
       <div className={styles.loginPage}>
         <div className={styles.glow} aria-hidden="true" />
 
-        <div className={styles.container}>
+        <div className={styles.container} id="konten">
           <div className={styles.logo}>
             <img src="/logo.webp" alt="MagangHub" className={styles.logoImg} />
             <p className={styles.logoText}>Sistem Informasi Manajemen Magang</p>

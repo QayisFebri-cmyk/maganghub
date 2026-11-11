@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import AppShell from '@/components/layout/AppShell'
 import PageHeader from '@/components/ui/PageHeader'
 import Badge from '@/components/ui/Badge'
+import Reveal from '@/components/ui/Reveal'
 import { useToast } from '@/components/ui/Toast'
 import { useAuth } from '@/lib/auth-context'
 import { pesertaApi } from '@/lib/api'
@@ -82,7 +83,8 @@ export default function ProfilPage() {
           subtitle="Perbarui informasi akun dan password kamu"
         />
 
-        <div className={page.grid2}>
+        <Reveal delay={40}>
+          <div className={page.grid2}>
           <section className={ui.card}>
             <div className={ui.cardHead}>
               <h2 className={ui.cardTitle}>Informasi Akun</h2>
@@ -231,7 +233,8 @@ export default function ProfilPage() {
               </form>
             </div>
           </section>
-        </div>
+          </div>
+        </Reveal>
       </div>
     </AppShell>
   )

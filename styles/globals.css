@@ -1,22 +1,24 @@
 /* ============================================================
    MagangHub — Global styles
-   Tema: Futuristic Dark (navy + cyan), animasi minimal
+   Tema: Futuristic Dark (navy + cyan), micro-interactions ringan
    ============================================================ */
 
 :root {
   --bg: #070d1b;
+  --bg-deep: #04070f;
   --bg-soft: #0a1222;
   --bg-elev: #0d1729;
   --surface: rgba(16, 26, 43, 0.72);
   --surface-2: rgba(20, 32, 52, 0.86);
   --border: rgba(0, 217, 255, 0.14);
-  --border-strong: rgba(0, 217, 255, 0.32);
+  --border-strong: rgba(0, 217, 255, 0.34);
 
   --text: #e6edf7;
   --text-soft: #a7b6cc;
   --text-muted: #74869f;
 
   --accent: #00d9ff;
+  --accent-blue: #38bdf8;
   --accent-soft: rgba(0, 217, 255, 0.12);
   --accent-2: #7c6bff;
 
@@ -35,10 +37,13 @@
 
   --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.25);
   --shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
-  --shadow-glow: 0 0 0 1px rgba(0, 217, 255, 0.12),
-    0 8px 28px rgba(0, 217, 255, 0.1);
+  --shadow-glow: 0 0 0 1px rgba(0, 217, 255, 0.14),
+    0 10px 32px rgba(0, 217, 255, 0.12);
+  --shadow-glow-strong: 0 0 0 1px rgba(0, 217, 255, 0.24),
+    0 14px 44px rgba(0, 217, 255, 0.2);
 
   --ease: 0.18s ease;
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
 *,
@@ -59,59 +64,49 @@ body {
 
 html {
   -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  scroll-padding-top: 76px;
 }
 
 body {
-  font-family: 'Segoe UI', ui-sans-serif, system-ui, -apple-system,
-    'Helvetica Neue', Arial, sans-serif;
+  font-family: var(--font-body, 'Inter'), 'Segoe UI', ui-sans-serif, system-ui,
+    -apple-system, 'Helvetica Neue', Arial, sans-serif;
   font-size: 15px;
   line-height: 1.55;
   color: var(--text);
   background-color: var(--bg);
   background-image: radial-gradient(
       900px 500px at 12% -10%,
-      rgba(0, 217, 255, 0.09),
+      rgba(0, 217, 255, 0.08),
       transparent 60%
     ),
     radial-gradient(
       800px 480px at 100% 0%,
       rgba(124, 107, 255, 0.1),
       transparent 62%
-    );
+    ),
+    linear-gradient(180deg, #070d1b 0%, #050a14 100%);
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  overflow-x: hidden;
 }
 
-/* Grid halus di background (tanpa animasi) */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background-image: linear-gradient(
-      to right,
-      rgba(0, 217, 255, 0.035) 1px,
-      transparent 1px
-    ),
-    linear-gradient(to bottom, rgba(0, 217, 255, 0.035) 1px, transparent 1px);
-  background-size: 64px 64px;
-  mask-image: radial-gradient(ellipse at 50% 0%, #000 30%, transparent 78%);
-  -webkit-mask-image: radial-gradient(
-    ellipse at 50% 0%,
-    #000 30%,
-    transparent 78%
-  );
+.appRoot {
+  font-family: var(--font-body, 'Inter'), 'Segoe UI', ui-sans-serif, system-ui,
+    -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  min-height: 100vh;
 }
 
 h1,
 h2,
 h3,
 h4 {
-  line-height: 1.25;
+  font-family: var(--font-display, 'Space Grotesk'), var(--font-body, 'Inter'),
+    'Segoe UI', system-ui, sans-serif;
+  line-height: 1.22;
   font-weight: 650;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
 }
 
 a {
@@ -156,7 +151,8 @@ table {
   color: #fff;
 }
 
-/* Scrollbar */
+/* ---------------- Scrollbar ---------------- */
+
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -178,7 +174,153 @@ table {
   background-clip: content-box;
 }
 
-/* Animasi minimal */
+/* ============================================================
+   Background dekoratif (fixed, tidak mengganggu konten)
+   ============================================================ */
+
+.bgDecor {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.bgOrb {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.9;
+  will-change: transform;
+}
+
+.bgOrb1 {
+  top: -18%;
+  left: -8%;
+  width: 58vw;
+  height: 58vw;
+  min-width: 420px;
+  min-height: 420px;
+  background: radial-gradient(
+    circle at center,
+    rgba(0, 217, 255, 0.16),
+    rgba(0, 217, 255, 0.05) 42%,
+    transparent 70%
+  );
+  animation: mh-orb-1 26s var(--ease-out) infinite alternate;
+}
+
+.bgOrb2 {
+  top: -10%;
+  right: -12%;
+  width: 52vw;
+  height: 52vw;
+  min-width: 380px;
+  min-height: 380px;
+  background: radial-gradient(
+    circle at center,
+    rgba(124, 107, 255, 0.16),
+    rgba(124, 107, 255, 0.05) 45%,
+    transparent 70%
+  );
+  animation: mh-orb-2 32s var(--ease-out) infinite alternate;
+}
+
+.bgOrb3 {
+  bottom: -28%;
+  left: 28%;
+  width: 46vw;
+  height: 46vw;
+  min-width: 320px;
+  min-height: 320px;
+  background: radial-gradient(
+    circle at center,
+    rgba(56, 189, 248, 0.12),
+    rgba(56, 189, 248, 0.04) 46%,
+    transparent 72%
+  );
+  animation: mh-orb-3 38s var(--ease-out) infinite alternate;
+}
+
+.bgGrid {
+  position: absolute;
+  inset: -25%;
+  background-image: linear-gradient(
+      to right,
+      rgba(0, 217, 255, 0.045) 1px,
+      transparent 1px
+    ),
+    linear-gradient(to bottom, rgba(0, 217, 255, 0.045) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse at 50% 0%, #000 26%, transparent 76%);
+  -webkit-mask-image: radial-gradient(
+    ellipse at 50% 0%,
+    #000 26%,
+    transparent 76%
+  );
+  animation: mh-grid-drift 90s linear infinite;
+}
+
+.bgParticles {
+  position: absolute;
+  inset: 0;
+}
+
+.bgParticle {
+  position: absolute;
+  top: 100%;
+  border-radius: 50%;
+  background: rgba(0, 217, 255, 0.55);
+  box-shadow: 0 0 10px rgba(0, 217, 255, 0.55);
+  opacity: 0;
+  animation-name: mh-particle;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+/* ============================================================
+   Skip link (accessibility)
+   ============================================================ */
+
+.skipLink {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 2000;
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: #04121b;
+  background: linear-gradient(135deg, #00d9ff, #38bdf8);
+  transform: translateY(-160%);
+  transition: transform var(--ease);
+}
+
+.skipLink:focus-visible {
+  transform: translateY(0);
+}
+
+/* ============================================================
+   Scroll reveal
+   ============================================================ */
+
+.reveal {
+  min-width: 0;
+}
+
+.revealHidden {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.revealVisible {
+  animation: mh-reveal 0.55s var(--ease-out) both;
+}
+
+/* ============================================================
+   Keyframes
+   ============================================================ */
+
 @keyframes mh-spin {
   to {
     transform: rotate(360deg);
@@ -197,7 +339,7 @@ table {
 @keyframes mh-rise {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -205,7 +347,88 @@ table {
   }
 }
 
+@keyframes mh-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes mh-orb-1 {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  100% {
+    transform: translate3d(4%, 6%, 0) scale(1.08);
+  }
+}
+
+@keyframes mh-orb-2 {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1.04);
+  }
+  100% {
+    transform: translate3d(-5%, 7%, 0) scale(1);
+  }
+}
+
+@keyframes mh-orb-3 {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  100% {
+    transform: translate3d(-6%, -8%, 0) scale(1.1);
+  }
+}
+
+@keyframes mh-grid-drift {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(64px, 64px, 0);
+  }
+}
+
+@keyframes mh-particle {
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.65;
+  }
+  80% {
+    opacity: 0.35;
+  }
+  100% {
+    transform: translate3d(14px, -112vh, 0);
+    opacity: 0;
+  }
+}
+
+@keyframes mh-bar-grow {
+  from {
+    transform: scaleY(0.04);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+/* ============================================================
+   Reduced motion & print
+   ============================================================ */
+
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
   *,
   *::before,
   *::after {
@@ -214,16 +437,29 @@ table {
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
+
+  .bgParticle {
+    display: none;
+  }
+
+  .revealHidden {
+    opacity: 1;
+    transform: none;
+  }
+
+  .revealVisible {
+    animation: none;
+  }
 }
 
-/* Print (untuk halaman Laporan) */
 @media print {
   body {
     background: #fff;
     color: #111;
   }
 
-  body::before {
+  .bgDecor,
+  .skipLink {
     display: none;
   }
 
